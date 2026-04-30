@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ t('admin_order_label') }} {{ order.order_number }}{% endblock %}
+{% block topbar_title %}{{ t('admin_order_label') }} {{ order.order_number }}{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+  <div>
+    <a href="/admin/bestellungen" style="color:var(--text-muted);font-size:0.88rem;text-decoration:none">{{ t('admin_back_to_orders') }}</a>
+    <div style="margin-top:0.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <h1 style="font-size:1.4rem;font-weight:900;margin:0;font-family:monospace">{{ order.order_number }}</h1>
+      <span class="badge badge-{{ order.status }}">{{ t('status_' ~ order.status) }}</span>
+      {% if order.is_paid %}<span class="badge badge-delivered">💶 {{ t('filter_paid_yes') }}</span>
+      {% else %}<span class="badge badge-pending">💶 {{ t('filter_unpaid') }}</span>{% endif %}
+      {% if order.is_locked %}<span class="badge badge-locked">🔒 {{ t('status_locked') }}</span>{% endif %}
+    </div>
+    <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.3rem">
+      {{ order.created_at | datetimeDE }}
+    </div>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+    {% if order.status == 'pending' %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/bestaetigt">
+      <button class="btn btn-success btn-sm">✅ {{ t('admin_confirm_btn') }}</button>
+    </form>
+    {% endif %}
+
+    {% if order.status == 'confirmed' %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbestaetigt">
+      <button class="btn btn-outline btn-sm">↩️ {{ t('admin_unconfirm_btn') }}</button>
+    </form>
+    {% endif %}
+
+    {% if order.status not in ('cancelled', 'delivered') %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/geliefert">
+      <button class="btn btn-secondary btn-sm">📦 {{ t('admin_mark_delivered_btn') }}</button>
+    </form>
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/sperren">
+      <button class="btn btn-outline btn-sm">🔒 {{ t('admin_lock_btn') }}</button>
+    </form>
+    {% endif %}
+
+    {% if order.status == 'delivered' %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtgeliefert"
+      onsubmit="return confirm('{{ t('admin_undeliver_confirm') }}')">
+      <button class="btn btn-outline btn-sm">↩️ {{ t('admin_undeliver') }}</button>
+    </form>
+    {% endif %}
+
+    {% if order.status != 'cancelled' %}
+      {% if not order.is_paid %}
+      <form method="post" action="/admin/bestellungen/{{ order.id }}/bezahlt">
+        <button class="btn btn-primary btn-sm">💶 {{ t('admin_mark_paid_btn') }}</button>
+      </form>
+      {% else %}
+      <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbezahlt"
+        onsubmit="return confirm('{{ t('admin_unpaid_confirm') }}')">
+        <button class="btn btn-outline btn-sm">↩️ {{ t('admin_unpaid_btn') }}</button>
+      </form>
+      {% endif %}
+    {% endif %}
+
+    {% if order.status not in ('cancelled', 'delivered') %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/stornieren" id="cancel-form">
+      <button type="button" class="btn btn-danger btn-sm" id="cancel-order-btn">❌ {{ t('admin_cancel_btn') }}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start">
+
+  <div>
+    <div class="card mb-2" style="padding:0;overflow:hidden">
+      <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800">
+        🛍️ {{ t('admin_ordered_items') }}
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>{{ t('col_product') }}</th>
+            <th style="text-align:center">{{ t('col_quantity') }}</th>
+            <th style="text-align:right">{{ t('col_unit_price') }}</th>
+            <th style="text-align:right">{{ t('col_subtotal') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items %}
+          <tr>
+            <td style="font-weight:700">{{ item.product_name }}</td>
+            <td style="text-align:center">{{ item.quantity }}</td>
+            <td style="text-align:right">{{ item.product_price | eur }}</td>
+            <td style="text-align:right;font-weight:700">{{ item.subtotal | eur }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid var(--border)">
+            <td colspan="3" style="padding:0.9rem;font-weight:800;font-size:1rem">{{ t('total') }}</td>
+            <td style="padding:0.9rem;text-align:right;font-size:1.2rem;font-weight:900;color:var(--primary)">
+              {{ total | eur }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {% if order.customer_note %}
+    <div class="card mb-2">
+      <div style="font-weight:800;margin-bottom:0.5rem">📝 {{ t('admin_customer_note_label') }}</div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:0.9rem;font-size:0.9rem;color:var(--text-muted)">
+        {{ order.customer_note }}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="notice notice-info" style="font-size:0.85rem">
+      🔗 {{ t('admin_edit_link_label') }}:
+      <a href="/bestellung/aendern?token={{ order.edit_token }}" style="word-break:break-all;font-family:monospace;font-size:0.8rem">
+        /bestellung/aendern?token={{ order.edit_token }}
+      </a>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h3 style="font-weight:800;margin:0 0 1rem;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">
+        👤 {{ t('admin_customer_data') }}
+      </h3>
+      <div style="font-size:0.9rem;line-height:1.8">
+        <div style="font-weight:800;font-size:1rem">{{ order.customer_name }}</div>
+        <div>✉️ <a href="mailto:{{ order.customer_email }}">{{ order.customer_email }}</a></div>
+        <div>📞 {{ order.customer_phone }}</div>
+      </div>
+      <div class="divider"></div>
+      <h3 style="font-weight:800;margin:0 0 0.75rem;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">
+        📍 {{ t('delivery_address') }}
+      </h3>
+      <div style="font-size:0.9rem;line-height:1.8">
+        <div>{{ order.customer_address }}</div>
+        <div>{{ order.customer_zip }} {{ order.customer_city }}</div>
+        <div>{{ order.customer_country }}</div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:0.82rem;color:var(--text-muted)">
+        <div>🌐 {{ t('admin_language_label') }}: <strong>{{ order.language | upper }}</strong></div>
+        <div>📅 {{ t('admin_created_label') }}: {{ order.created_at | datetimeDE }}</div>
+        <div>🔄 {{ t('admin_updated_label') }}: {{ order.updated_at | datetimeDE }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="cancel-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>{{ t('admin_cancel_order_modal_title') }}</h3>
+    <p>{{ t('admin_cancel_order_modal_text') }}</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancel-modal-close">← {{ t('admin_cancel_btn_text') }}</button>
+      <form method="post" action="/admin/bestellungen/{{ order.id }}/stornieren">
+        <button type="submit" class="btn btn-danger">❌ {{ t('admin_cancel_btn') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const cancelBtn = document.getElementById('cancel-order-btn');
+const cancelModal = document.getElementById('cancel-modal');
+const cancelClose = document.getElementById('cancel-modal-close');
+if (cancelBtn) cancelBtn.addEventListener('click', () => cancelModal.classList.remove('hidden'));
+if (cancelClose) cancelClose.addEventListener('click', () => cancelModal.classList.add('hidden'));
+if (cancelModal) cancelModal.addEventListener('click', e => { if (e.target === cancelModal) cancelModal.classList.add('hidden'); });
+</script>
+{% endblock %}

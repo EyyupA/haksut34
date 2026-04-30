@@ -1,0 +1,85 @@
+import Fastify from 'fastify'
+import cookie from '@fastify/cookie'
+import formbody from '@fastify/formbody'
+import multipart from '@fastify/multipart'
+import staticFiles from '@fastify/static'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+import { seedProducts } from './db.js'
+import { makeT, createNunjucksEnv } from './i18n.js'
+import { hashPassword } from './auth.js'
+import { queries } from './db.js'
+import shopRoutes from './routes/shop.js'
+import ordersRoutes from './routes/orders.js'
+import adminRoutes from './routes/admin.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const ROOT = path.join(__dirname, '..')
+
+// ── App ────────────────────────────────────────────────────────────────────────
+const app = Fastify({ logger: { level: process.env.LOG_LEVEL || 'info' } })
+
+// ── Nunjucks ───────────────────────────────────────────────────────────────────
+const njk = createNunjucksEnv(path.join(ROOT, 'templates'))
+
+// Decorate reply with render() helper – injects lang, t, path, currentYear automatically
+app.decorateReply('view', null)
+app.addHook('onReady', async () => {
+  // noop – just ensures njk is initialised before first request
+})
+
+// render helper exposed via fastify instance so routes can call fastify.render(reply, ...)
+app.decorate('render', (reply, template, request, extra = {}) => {
+  const lang = request.lang || 'de'
+  const html = njk.render(template, {
+    lang,
+    t: makeT(lang),
+    path: new URL(request.url, 'http://localhost').pathname,
+    currentYear: new Date().getFullYear(),
+    ...extra,
+  })
+  return reply.type('text/html').send(html)
+})
+
+// ── Plugins ────────────────────────────────────────────────────────────────────
+await app.register(cookie)
+await app.register(formbody)
+await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } })
+await app.register(staticFiles, {
+  root: path.join(ROOT, 'static'),
+  prefix: '/static/',
+})
+
+// ── i18n middleware ────────────────────────────────────────────────────────────
+app.addHook('preHandler', (req, reply, done) => {
+  const lang = req.cookies.lang || 'de'
+  req.lang = ['de', 'tr', 'en'].includes(lang) ? lang : 'de'
+  done()
+})
+
+// ── Language switch ────────────────────────────────────────────────────────────
+app.get('/sprache/:lang', (req, reply) => {
+  const lang = ['de', 'tr', 'en'].includes(req.params.lang) ? req.params.lang : 'de'
+  reply.setCookie('lang', lang, { maxAge: 365 * 24 * 3600, path: '/', sameSite: 'lax' })
+  return reply.redirect(req.headers.referer || '/')
+})
+
+// ── Routes ─────────────────────────────────────────────────────────────────────
+await app.register(shopRoutes)
+await app.register(ordersRoutes)
+await app.register(adminRoutes, { prefix: '/admin' })
+
+// ── Start ──────────────────────────────────────────────────────────────────────
+seedProducts()
+seedAdmin()
+
+await app.listen({ port: 8000, host: '0.0.0.0' })
+console.log('🚀 Haksüt34 läuft auf http://0.0.0.0:8000')
+
+function seedAdmin() {
+  const username = process.env.ADMIN_USERNAME || 'admin'
+  const password = process.env.ADMIN_PASSWORD || ''
+  if (!password) { console.warn('⚠️  ADMIN_PASSWORD nicht gesetzt'); return }
+  queries.insertAdmin.run(username, hashPassword(password))
+}

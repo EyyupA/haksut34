@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Bestellung storniert – Haksüt34</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #FAFAF7; color: #1A1A1A; margin: 0; padding: 0; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 2rem 1rem; }
+    .header { background: #D32F2F; padding: 2rem; border-radius: 12px 12px 0 0; text-align: center; color: white; }
+    .header h1 { margin: 0; font-size: 1.5rem; font-weight: 900; }
+    .body { background: white; padding: 2rem; border: 1px solid #E0E0E0; border-top: none; }
+    .order-number { background: #FFEBEE; border: 2px solid #D32F2F; border-radius: 8px; padding: 1rem; text-align: center; margin-bottom: 1.5rem; }
+    .order-number .value { font-size: 1.4rem; font-weight: 900; color: #D32F2F; letter-spacing: 1px; font-family: monospace; }
+    .btn { display: inline-block; background: #E87722; color: white; padding: 0.8rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 800; }
+    .footer { background: #1A1A1A; color: #aaa; padding: 1.5rem; border-radius: 0 0 12px 12px; text-align: center; font-size: 0.82rem; }
+    .footer a { color: #E87722; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>❌ Bestellung storniert</h1>
+    <p>Ihre Bestellung wurde erfolgreich storniert</p>
+  </div>
+  <div class="body">
+    <p>Hallo <strong>{{ order.customer_name }}</strong>,</p>
+    <p>Ihre Bestellung wurde erfolgreich storniert. Sie erhalten keine weiteren Nachrichten zu dieser Bestellung.</p>
+
+    <div class="order-number">
+      <div style="font-size:0.78rem;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:0.2rem">Stornierte Bestellung</div>
+      <div class="value">{{ order.order_number }}</div>
+    </div>
+
+    <p style="color:#666">Wenn Sie Fragen haben oder eine neue Bestellung aufgeben möchten, besuchen Sie uns gerne wieder oder kontaktieren Sie uns.</p>
+
+    <div style="text-align:center;margin-top:1.5rem">
+      <a href="https://{{ domain }}" class="btn">🛒 Erneut bestellen</a>
+    </div>
+  </div>
+  <div class="footer">
+    <a href="https://www.instagram.com/haksut34">📸 @haksut34</a> · <a href="mailto:info@haksut34.de">info@haksut34.de</a>
+  </div>
+</div>
+</body>
+</html>

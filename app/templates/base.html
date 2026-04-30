@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ t('site_title') }}{% endblock %}</title>
+  <meta name="description" content="{{ t('tagline_sub') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/custom.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-logo">
+      <img src="/static/img/logo.png" alt="Haksüt34 Logo" onerror="this.style.display='none'">
+      <span class="navbar-logo-text">Haksüt<span>34</span></span>
+    </a>
+    <nav class="navbar-nav">
+      <a href="/" class="nav-link {% if path == '/' %}active{% endif %}">{{ t('nav_shop') }}</a>
+      <a href="/bestellung/suchen" class="nav-link">{{ t('nav_order_lookup') }}</a>
+      <a href="/warenkorb" class="cart-btn {% if path == '/warenkorb' %}active{% endif %}">
+        🛒 {{ t('nav_cart') }} <span class="cart-badge">0</span>
+      </a>
+      <div class="lang-switcher">
+        <a href="/sprache/de" class="lang-btn {% if lang == 'de' %}active{% endif %}">DE</a>
+        <a href="/sprache/tr" class="lang-btn {% if lang == 'tr' %}active{% endif %}">TR</a>
+        <a href="/sprache/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+      </div>
+    </nav>
+  </div>
+</nav>
+
+{% block hero %}{% endblock %}
+
+<main class="container section animate-in">
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">Haksüt34</div>
+      <div style="margin-top:0.4rem">{{ t('footer_delivery') }}</div>
+      <div style="margin-top:0.25rem">✉️ <a href="mailto:{{ t('contact_email') }}">{{ t('contact_email') }}</a></div>
+    </div>
+    <div>
+      <a href="{{ t('instagram_link') }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.5rem;font-weight:700">
+        📸 {{ t('footer_instagram') }}
+      </a>
+    </div>
+    <div style="color:#666;font-size:0.82rem">
+      © {{ currentYear }} Haksüt34. {{ t('footer_rights') }}.
+    </div>
+  </div>
+</footer>
+
+<script src="/static/js/cart.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

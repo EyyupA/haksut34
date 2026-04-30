@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('edit_order_title') }} – Haksüt34{% endblock %}
+
+{% block content %}
+<div style="max-width:800px;margin:0 auto">
+
+  <h1 class="page-title">{{ t('edit_order_title') }}</h1>
+  <p style="color:var(--text-muted);margin-bottom:1.5rem">
+    {{ t('order_number_short') }}: <strong>{{ order.order_number }}</strong> &nbsp;·&nbsp;
+    <span class="badge badge-{{ order.status }}">{{ t('status_' ~ order.status) }}</span>
+  </p>
+
+  {% if locked %}
+  <div class="notice notice-warning" style="font-size:0.95rem">
+    🔒 {{ t('order_locked_msg') }}
+    <br><br>
+    <a href="mailto:{{ t('contact_email') }}" class="btn btn-outline btn-sm">✉️ {{ t('contact_us') }}</a>
+  </div>
+
+  <div class="card mt-3">
+    <h3 class="card-title">{{ t('order_details') }}</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border)">
+          <th style="padding:0.5rem 0;text-align:left">{{ t('col_product') }}</th>
+          <th style="padding:0.5rem;text-align:center">{{ t('col_quantity') }}</th>
+          <th style="padding:0.5rem 0;text-align:right">{{ t('col_subtotal') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items %}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:0.7rem 0;font-weight:700">{{ item.product_name }}</td>
+          <td style="padding:0.7rem;text-align:center">{{ item.quantity }}</td>
+          <td style="padding:0.7rem 0;text-align:right">{{ item.subtotal | eur }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="padding:0.9rem 0 0;font-weight:800">{{ t('total') }}</td>
+          <td style="padding:0.9rem 0 0;text-align:right;font-size:1.15rem;font-weight:900;color:var(--primary)">
+            {{ total | eur }}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  {% else %}
+
+  <div class="notice notice-info" style="margin-bottom:1.5rem;font-size:0.88rem">
+    ℹ️ {{ t('edit_hint') }}
+  </div>
+
+  <form method="post" action="/bestellung/aendern" id="edit-form">
+    <input type="hidden" name="token" value="{{ token }}">
+    <input type="hidden" name="items_json" id="edit-items-json" value="[]">
+
+    <!-- Current items -->
+    <div class="card mb-2">
+      <h3 class="card-title">🛍️ {{ t('edit_items_title') }}</h3>
+      <div style="overflow-x:auto">
+        <table class="cart-table" id="edit-items-table">
+          <thead>
+            <tr>
+              <th>{{ t('col_product') }}</th>
+              <th>{{ t('col_unit_price') }}</th>
+              <th>{{ t('col_quantity') }}</th>
+              <th>{{ t('col_subtotal') }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="edit-tbody">
+            {% for item in order.items %}
+            <tr data-product-id="{{ item.product_id }}"
+                data-name="{{ item.product_name }}" data-price="{{ item.product_price }}">
+              <td><strong>{{ item.product_name }}</strong></td>
+              <td>{{ item.product_price | eur }}</td>
+              <td>
+                <input type="number" class="qty-input item-qty" value="{{ item.quantity }}" min="1" max="99"
+                  data-product-id="{{ item.product_id }}">
+              </td>
+              <td class="item-subtotal"><strong>{{ item.subtotal | eur }}</strong></td>
+              <td>
+                <button type="button" class="btn-remove" onclick="removeEditItem(this)">✕</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:1rem;border-top:2px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700">{{ t('total') }}:</span>
+        <span id="edit-total" style="font-size:1.2rem;font-weight:900;color:var(--primary)">{{ total | eur }}</span>
+      </div>
+    </div>
+
+    <!-- Add more items via shop -->
+    <div class="card mb-2" style="border:2px dashed var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div style="font-weight:800;margin-bottom:0.2rem">➕ {{ t('edit_add_items_title') }}</div>
+          <div style="font-size:0.85rem;color:var(--text-muted)">{{ t('edit_add_items_hint') }}</div>
+        </div>
+        <a href="/?add_to_order={{ token }}" class="btn btn-outline">🛒 {{ t('go_to_shop') }}</a>
+      </div>
+    </div>
+
+    <!-- Contact details -->
+    <div class="card mb-2">
+      <h3 class="card-title">📋 {{ t('edit_contact_title') }}</h3>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">{{ t('field_name') }} <span class="required">*</span></label>
+          <input type="text" name="customer_name" class="form-input" required value="{{ order.customer_name }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('field_phone') }} <span class="required">*</span></label>
+          <input type="tel" name="customer_phone" class="form-input" required value="{{ order.customer_phone }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ t('field_address') }} <span class="required">*</span></label>
+        <input type="text" name="customer_address" class="form-input" required value="{{ order.customer_address }}">
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">{{ t('field_zip') }} <span class="required">*</span></label>
+          <input type="text" name="customer_zip" class="form-input" required value="{{ order.customer_zip }}" pattern="\d{5}" maxlength="5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('field_city') }} <span class="required">*</span></label>
+          <input type="text" name="customer_city" class="form-input" required value="{{ order.customer_city }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ t('field_note') }}</label>
+        <textarea name="customer_note" class="form-input">{{ order.customer_note or '' }}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
+      <button type="submit" class="btn btn-primary btn-lg">💾 {{ t('save_changes') }}</button>
+      <button type="button" class="btn btn-danger" id="cancel-order-trigger">❌ {{ t('cancel_order') }}</button>
+    </div>
+  </form>
+
+  <!-- Cancel modal -->
+  <div id="cancel-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>{{ t('cancel_order_title') }}</h3>
+      <p>{{ t('cancel_order_confirm') }}</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cancel-modal-close">← {{ t('back_to_shop') }}</button>
+        <form method="post" action="/bestellung/stornieren" style="display:inline">
+          <input type="hidden" name="token" value="{{ token }}">
+          <button type="submit" class="btn btn-danger">❌ {{ t('cancel_order') }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not locked %}
+<script>
+const EMPTY_CONFIRM = {{ t('edit_items_empty_confirm') | dump | safe }};
+
+function buildEditItems() {
+  return Array.from(document.querySelectorAll('#edit-tbody tr')).map(row => ({
+    product_id: parseInt(row.dataset.productId),
+    quantity: parseInt(row.querySelector('.item-qty')?.value || '0'),
+    name: row.dataset.name || '',
+    price: parseFloat(row.dataset.price || '0'),
+  })).filter(i => i.product_id && i.quantity > 0)
+}
+
+function updateEditTotals() {
+  const items = buildEditItems()
+  const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
+  document.getElementById('edit-total').textContent = total.toFixed(2) + ' €'
+  document.querySelectorAll('#edit-tbody tr').forEach(row => {
+    const pid = parseInt(row.dataset.productId)
+    const item = items.find(i => i.product_id === pid)
+    if (item) {
+      const cell = row.querySelector('.item-subtotal')
+      if (cell) cell.innerHTML = `<strong>${(item.price * item.quantity).toFixed(2)} €</strong>`
+    }
+  })
+}
+
+function removeEditItem(btn) {
+  btn.closest('tr').remove()
+  updateEditTotals()
+}
+
+function addEditItem(productId, name, price) {
+  // If already in table, just increment
+  const existing = document.querySelector(`#edit-tbody tr[data-product-id="${productId}"]`)
+  if (existing) {
+    const input = existing.querySelector('.item-qty')
+    input.value = parseInt(input.value) + 1
+    updateEditTotals()
+    existing.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    existing.style.background = '#fffde7'
+    setTimeout(() => existing.style.background = '', 800)
+    return
+  }
+  const tbody = document.getElementById('edit-tbody')
+  const tr = document.createElement('tr')
+  tr.dataset.productId = productId
+  tr.dataset.name = name
+  tr.dataset.price = price
+  tr.innerHTML = `
+    <td><strong>${name}</strong></td>
+    <td>${price.toFixed(2)} €</td>
+    <td><input type="number" class="qty-input item-qty" value="1" min="1" max="99" data-product-id="${productId}"></td>
+    <td class="item-subtotal"><strong>${price.toFixed(2)} €</strong></td>
+    <td><button type="button" class="btn-remove" onclick="removeEditItem(this)">✕</button></td>
+  `
+  tbody.appendChild(tr)
+  tr.querySelector('.item-qty').addEventListener('change', updateEditTotals)
+  tr.querySelector('.item-qty').addEventListener('input', updateEditTotals)
+  updateEditTotals()
+  tr.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+document.querySelectorAll('.item-qty').forEach(input => {
+  input.addEventListener('change', updateEditTotals)
+  input.addEventListener('input', updateEditTotals)
+})
+
+// Artikel aus dem Shop-Modus übernehmen
+;(function importFromShop() {
+  const params = new URLSearchParams(location.search)
+  if (!params.get('from_shop')) return
+  const cart = JSON.parse(localStorage.getItem('haksut34_cart') || '[]')
+  cart.forEach(item => addEditItem(item.product_id, item.name, item.price))
+  if (cart.length) {
+    localStorage.removeItem('haksut34_cart')
+    // Badge zurücksetzen
+    document.querySelectorAll('.cart-badge').forEach(b => { b.textContent = '0'; b.style.display = 'none' })
+  }
+  // URL bereinigen
+  history.replaceState({}, '', `/bestellung/aendern?token={{ token }}`)
+})()
+
+document.getElementById('edit-form').addEventListener('submit', e => {
+  const items = buildEditItems()
+  if (items.length === 0) {
+    e.preventDefault()
+    if (confirm(EMPTY_CONFIRM)) document.getElementById('cancel-order-trigger').click()
+    return
+  }
+  document.getElementById('edit-items-json').value = JSON.stringify(items)
+})
+
+document.getElementById('cancel-order-trigger').addEventListener('click', () =>
+  document.getElementById('cancel-modal').classList.remove('hidden'))
+document.getElementById('cancel-modal-close').addEventListener('click', () =>
+  document.getElementById('cancel-modal').classList.add('hidden'))
+document.getElementById('cancel-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden')
+})
+</script>
+{% endif %}
+{% endblock %}

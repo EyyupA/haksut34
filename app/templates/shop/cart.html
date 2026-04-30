@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('cart_title') }} – Haksüt34{% endblock %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 auto">
+
+  <div id="cart-empty" class="text-center" style="padding:4rem 0">
+    <div style="font-size:4rem;margin-bottom:1rem">🛒</div>
+    <h2 style="margin:0 0 0.5rem">{{ t('cart_empty') }}</h2>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem">{{ t('cart_empty_sub') }}</p>
+    <a href="/" class="btn btn-primary">{{ t('go_to_shop') }}</a>
+  </div>
+
+  <div id="cart-content" class="hidden">
+    <h1 class="page-title">{{ t('cart_title') }}</h1>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start" class="cart-layout">
+
+      <!-- Left: Cart items + Form -->
+      <div>
+        <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem">
+          <div style="padding:1.2rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:1rem">
+            🛍️ {{ t('cart_your_items') }}
+          </div>
+          <div style="overflow-x:auto">
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th>{{ t('product') }}</th>
+                  <th>{{ t('price') }}</th>
+                  <th>{{ t('quantity') }}</th>
+                  <th>{{ t('subtotal') }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="cart-tbody"></tbody>
+            </table>
+          </div>
+          <div style="padding:1rem 1.5rem;border-top:1px solid var(--border)">
+            <a href="/" class="btn btn-outline btn-sm">← {{ t('back_to_shop') }}</a>
+          </div>
+        </div>
+
+        <!-- Order Form -->
+        <div class="card">
+          <h2 class="card-title">📋 {{ t('order_form_title') }}</h2>
+          <form method="post" action="/bestellung/aufgeben" id="order-form">
+            <input type="hidden" name="language" value="{{ lang }}">
+            <input type="hidden" name="items_json" id="items-json-input" value="[]">
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">{{ t('field_name') }} <span class="required">*</span></label>
+                <input type="text" name="customer_name" class="form-input" required placeholder="Max Mustermann">
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('field_phone') }} <span class="required">*</span></label>
+                <input type="tel" name="customer_phone" class="form-input" required placeholder="+49 xxx xxxx xxxx">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">{{ t('field_email') }} <span class="required">*</span></label>
+              <input type="email" name="customer_email" class="form-input" required placeholder="max@email.de">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">{{ t('field_address') }} <span class="required">*</span></label>
+              <input type="text" name="customer_address" class="form-input" required placeholder="Musterstraße 1">
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">{{ t('field_zip') }} <span class="required">*</span></label>
+                <input type="text" name="customer_zip" class="form-input" required placeholder="10115" pattern="\d{5}" maxlength="5">
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('field_city') }} <span class="required">*</span></label>
+                <input type="text" name="customer_city" class="form-input" required placeholder="Berlin">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">{{ t('field_country') }}</label>
+              <select name="customer_country" class="form-input">
+                <option value="Deutschland" selected>Deutschland</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">{{ t('field_note') }}</label>
+              <textarea name="customer_note" class="form-input" placeholder="{{ t('field_note_placeholder') }}"></textarea>
+            </div>
+
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="dsgvo" required>
+                <label for="dsgvo" style="font-size:0.88rem;color:var(--text-muted)">{{ t('dsgvo_consent') }}</label>
+              </div>
+            </div>
+
+            <div class="payment-notice mb-2">
+              💶 {{ t('payment_notice') }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-full">
+              ✅ {{ t('submit_order') }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div style="position:sticky;top:80px">
+        <div class="card">
+          <h3 class="card-title">📊 {{ t('cart_summary') }}</h3>
+          <div class="total-row">
+            <span>{{ t('cart_subtotal') }}</span>
+            <span class="cart-total-amount">0.00 €</span>
+          </div>
+          <div class="total-row">
+            <span>{{ t('cart_shipping') }}</span>
+            <span style="color:var(--success);font-weight:700">{{ t('cart_shipping_value') }}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="total-row grand">
+            <span>{{ t('total') }}</span>
+            <span class="cart-total-amount">0.00 €</span>
+          </div>
+          <div class="notice notice-info" style="margin-top:1rem;font-size:0.82rem">
+            ℹ️ {{ t('cart_no_prepayment') }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  renderCart('{{ lang }}');
+  const cartLayout = document.querySelector('.cart-layout');
+  if (window.innerWidth < 768 && cartLayout) cartLayout.style.gridTemplateColumns = '1fr';
+});
+</script>
+{% endblock %}

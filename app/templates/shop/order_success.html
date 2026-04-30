@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('order_success_title') }} – Haksüt34{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;margin:2rem auto">
+  <div class="card text-center">
+    <div class="success-icon">✓</div>
+    <h1 style="font-size:1.8rem;font-weight:900;margin:0 0 0.5rem">{{ t('order_success_title') }}</h1>
+    <p style="color:var(--text-muted);margin:0 0 0.5rem">{{ t('order_success_text') }}</p>
+    <p style="color:var(--text-muted);font-size:0.9rem">{{ t('order_success_email') }}</p>
+
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:1rem 1.5rem;margin:1.5rem 0;text-align:left">
+      <div style="font-size:0.82rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem">
+        {{ t('order_number') }}
+      </div>
+      <div style="font-size:1.4rem;font-weight:900;color:var(--primary);letter-spacing:1px">
+        {{ order.order_number }}
+      </div>
+    </div>
+
+    <div style="text-align:left;margin-bottom:1.5rem">
+      <h3 style="font-size:1rem;font-weight:800;margin-bottom:0.75rem">{{ t('order_details') }}</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border)">
+            <th style="padding:0.5rem 0;text-align:left;color:var(--text-muted)">{{ t('product') }}</th>
+            <th style="padding:0.5rem;text-align:center;color:var(--text-muted)">{{ t('quantity') }}</th>
+            <th style="padding:0.5rem 0;text-align:right;color:var(--text-muted)">{{ t('subtotal') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items %}
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:0.6rem 0;font-weight:700">{{ item.product_name }}</td>
+            <td style="padding:0.6rem;text-align:center">{{ item.quantity }}</td>
+            <td style="padding:0.6rem 0;text-align:right;font-weight:700">{{ item.subtotal | eur }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="padding:0.8rem 0 0;font-weight:800">{{ t('total') }}</td>
+            <td style="padding:0.8rem 0 0;text-align:right;font-size:1.2rem;font-weight:900;color:var(--primary)">
+              {{ total | eur }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:1rem;text-align:left;font-size:0.88rem;margin-bottom:1.5rem">
+      <div style="font-weight:800;margin-bottom:0.4rem">📍 {{ t('delivery_address') }}</div>
+      <div>{{ order.customer_name }}</div>
+      <div>{{ order.customer_address }}</div>
+      <div>{{ order.customer_zip }} {{ order.customer_city }}</div>
+      <div>{{ order.customer_country }}</div>
+      {% if order.customer_phone %}<div style="margin-top:0.25rem">📞 {{ order.customer_phone }}</div>{% endif %}
+    </div>
+
+    <div class="notice notice-info" style="text-align:left;margin-bottom:1.5rem;font-size:0.85rem">
+      ✏️ {{ t('order_success_edit_hint') }}<br>{{ t('order_success_edit_hint2') }}
+    </div>
+
+    <a href="/" class="btn btn-primary btn-lg">{{ t('back_to_shop') }}</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+.env
+*.db
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+app/data/
+app/static/img/products/*.jpg
+app/static/img/products/*.png
+app/static/img/products/*.webp
+letsencrypt/
+app/node_modules/

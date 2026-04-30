@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  app:
+    build: ./app
+    environment:
+      - DATABASE_URL=sqlite:////data/haksut34.db
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Haksüt34}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - db_data:/data
+      - product_images:/app/static/img/products
+    networks:
+      - traefik_web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.haksut34.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.haksut34.entrypoints=web,websecure"
+      - "traefik.http.services.haksut34.loadbalancer.server.port=8000"
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  product_images:
+
+networks:
+  traefik_web:
+    external: true

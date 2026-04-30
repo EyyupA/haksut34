@@ -1,0 +1,123 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ t('admin_edit_product') if product else t('admin_new_product_title') }}{% endblock %}
+{% block topbar_title %}{{ t('admin_edit_product') if product else t('admin_new_product_title') }}{% endblock %}
+
+{% block content %}
+
+<div style="max-width:780px">
+  <a href="/admin/produkte" style="color:var(--text-muted);font-size:0.88rem;text-decoration:none;display:inline-block;margin-bottom:1rem">
+    {{ t('admin_back_to_products') }}
+  </a>
+
+  {% if error %}
+  <div class="notice notice-danger mb-2">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data"
+    action="{{ '/admin/produkte/' ~ product.id ~ '/edit' if product else '/admin/produkte/neu' }}">
+
+    <div class="card mb-2">
+      <h3 class="card-title">🌍 {{ t('admin_product_names_section') }}</h3>
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">🇩🇪 Deutsch <span class="required">*</span></label>
+          <input type="text" name="name_de" class="form-input" required value="{{ product.name_de if product else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🇹🇷 Türkçe <span class="required">*</span></label>
+          <input type="text" name="name_tr" class="form-input" required value="{{ product.name_tr if product else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🇬🇧 English <span class="required">*</span></label>
+          <input type="text" name="name_en" class="form-input" required value="{{ product.name_en if product else '' }}">
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <h3 class="card-title">📝 {{ t('admin_descriptions_section') }}</h3>
+      <div class="form-group">
+        <label class="form-label">🇩🇪 Deutsch</label>
+        <textarea name="description_de" class="form-input">{{ product.description_de if product else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🇹🇷 Türkçe</label>
+        <textarea name="description_tr" class="form-input">{{ product.description_tr if product else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🇬🇧 English</label>
+        <textarea name="description_en" class="form-input">{{ product.description_en if product else '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <h3 class="card-title">💰 {{ t('admin_price_details_section') }}</h3>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">{{ t('admin_price_label') }} <span class="required">*</span></label>
+          <input type="number" name="price" class="form-input" required step="0.01" min="0"
+            value="{{ product.price if product else '' }}" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('admin_unit_label') }} <span class="required">*</span></label>
+          <input type="text" name="unit" class="form-input" required
+            value="{{ product.unit if product else '' }}" placeholder="{{ t('admin_unit_placeholder') }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('col_category') }} <span class="required">*</span></label>
+          <input type="text" name="category" class="form-input" list="categories-list" required
+            value="{{ product.category if product else '' }}" placeholder="{{ t('admin_category_placeholder') }}">
+          <datalist id="categories-list">
+            {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('admin_stock_label') }}</label>
+          <input type="number" name="stock" class="form-input" min="0"
+            value="{{ product.stock if product and product.stock != null else '' }}"
+            placeholder="{{ t('admin_stock_placeholder') }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" name="is_active" id="is_active" value="true"
+            {% if not product or product.is_active %}checked{% endif %}>
+          <label for="is_active" style="font-weight:700">{{ t('admin_active_label') }}</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-2">
+      <h3 class="card-title">🖼️ {{ t('admin_image_section') }}</h3>
+      {% if product and product.image_url %}
+      <div style="margin-bottom:1rem">
+        <img src="{{ product.image_url }}" id="image-preview"
+          style="max-width:200px;border-radius:var(--radius-sm);border:2px solid var(--border)">
+      </div>
+      {% else %}
+      <img id="image-preview" src="" class="hidden" style="max-width:200px;border-radius:var(--radius-sm);margin-bottom:1rem;border:2px solid var(--border)">
+      {% endif %}
+      <div class="form-group">
+        <label class="form-label">{{ t('admin_image_upload_hint') }}</label>
+        <input type="file" name="image_file" id="image-file-input" class="form-input"
+          accept=".jpg,.jpeg,.png,.webp" style="padding:0.4rem">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ t('admin_image_url_label') }}</label>
+        <input type="text" name="image_url" class="form-input"
+          value="{{ product.image_url if product else '' }}" placeholder="https://...">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem">
+      <button type="submit" class="btn btn-primary btn-lg">
+        💾 {{ t('admin_save_changes_btn') if product else t('admin_create_product_btn') }}
+      </button>
+      <a href="/admin/produkte" class="btn btn-outline">{{ t('admin_cancel_btn_text') }}</a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

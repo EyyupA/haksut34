@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} – Haksüt34</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+<body style="background:var(--bg)">
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <a href="/admin/" class="logo">🥛 Haksüt34<br>
+      <small style="font-size:0.72rem;font-weight:400;color:#888">{{ t('admin_panel_label') }}</small>
+    </a>
+
+    <a href="/admin/" class="sidebar-link {% if active == 'dashboard' %}active{% endif %}">
+      📊 {{ t('admin_dashboard') }}
+    </a>
+    <a href="/admin/bestellungen" class="sidebar-link {% if active == 'orders' %}active{% endif %}">
+      📦 {{ t('admin_orders_nav') }}
+    </a>
+    <a href="/admin/produkte" class="sidebar-link {% if active == 'products' %}active{% endif %}">
+      🛒 {{ t('admin_products_nav') }}
+    </a>
+
+    <div style="border-top:1px solid #333;margin:1rem 0;padding-top:1rem">
+      <a href="/" class="sidebar-link" target="_blank">🌐 {{ t('admin_view_shop') }}</a>
+      <a href="/admin/logout" class="sidebar-link" style="color:#e57373">🚪 {{ t('admin_logout') }}</a>
+    </div>
+
+    <div style="border-top:1px solid #333;margin:1rem 0;padding-top:1rem">
+      <div style="font-size:0.72rem;color:#666;padding:0 0.9rem;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">Sprache / Dil</div>
+      <div style="display:flex;gap:4px;padding:0 0.5rem">
+        <a href="/sprache/de" class="lang-btn {% if lang == 'de' %}active{% endif %}">DE</a>
+        <a href="/sprache/tr" class="lang-btn {% if lang == 'tr' %}active{% endif %}">TR</a>
+        <a href="/sprache/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <span style="font-weight:800">{% block topbar_title %}Admin{% endblock %}</span>
+      <a href="/admin/logout" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none">
+        🚪 {{ t('admin_logout') }}
+      </a>
+    </div>
+    <div class="admin-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
