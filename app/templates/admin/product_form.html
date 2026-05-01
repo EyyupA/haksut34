@@ -66,11 +66,13 @@
         </div>
         <div class="form-group">
           <label class="form-label">{{ t('col_category') }} <span class="required">*</span></label>
-          <input type="text" name="category" class="form-input" list="categories-list" required
-            value="{{ product.category if product else '' }}" placeholder="{{ t('admin_category_placeholder') }}">
-          <datalist id="categories-list">
-            {% for cat in categories %}<option value="{{ cat }}">{% endfor %}
-          </datalist>
+          <select name="category" class="form-input" required>
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if product and product.category == cat.slug %}selected{% endif %}>
+              {{ cat.name_de }}{% if cat.name_tr %} / {{ cat.name_tr }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">{{ t('admin_stock_label') }}</label>

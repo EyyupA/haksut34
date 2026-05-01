@@ -29,8 +29,14 @@ export default async function shopRoutes(fastify) {
   // GET /
   fastify.get('/', async (req, reply) => {
     const products = queries.allActiveProducts.all()
-    const categories = [...new Set(products.map(p => p.category))].sort()
-    return render(reply, 'shop/index.html', req, { products, categories })
+    const allCats = queries.allCategories.all()
+    const lang = req.lang
+    const categoryNames = {}
+    for (const c of allCats) categoryNames[c.slug] = c[`name_${lang}`] || c.name_de || c.slug
+    const productSlugs = new Set(products.map(p => p.category))
+    const categories = allCats.filter(c => productSlugs.has(c.slug)).map(c => c.slug)
+    for (const slug of productSlugs) if (!categories.includes(slug)) categories.push(slug)
+    return render(reply, 'shop/index.html', req, { products, categories, categoryNames })
   })
 
   // GET /warenkorb
@@ -105,6 +111,16 @@ export default async function shopRoutes(fastify) {
     if (!order) return reply.status(404).send('Bestellung nicht gefunden')
     const total = order.items.reduce((s, i) => s + i.subtotal, 0)
     return render(reply, 'shop/order_success.html', req, { order, total })
+  })
+
+  // GET /impressum
+  fastify.get('/impressum', async (req, reply) => {
+    return render(reply, 'shop/impressum.html', req, {})
+  })
+
+  // GET /datenschutz
+  fastify.get('/datenschutz', async (req, reply) => {
+    return render(reply, 'shop/datenschutz.html', req, {})
   })
 
   // GET /api/produkte

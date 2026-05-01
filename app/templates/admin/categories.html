@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ t('admin_categories_nav') }}{% endblock %}
+{% block topbar_title %}{{ t('admin_categories_nav') }}{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+  <div>
+    <h1 class="page-title">{{ t('admin_categories_nav') }}</h1>
+    <p class="page-sub">{{ categories | length }} {{ t('admin_categories_nav') | lower }}</p>
+  </div>
+  <a href="/admin/kategorien/neu" class="btn btn-primary">+ {{ t('admin_new_category') }}</a>
+</div>
+
+{% if error == 'in_use' %}
+<div class="notice notice-danger mb-2">⚠️ {{ t('admin_category_in_use') }}</div>
+{% endif %}
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="overflow-x:auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Slug</th>
+          <th>🇩🇪 Deutsch</th>
+          <th>🇹🇷 Türkçe</th>
+          <th>🇬🇧 English</th>
+          <th style="text-align:center">{{ t('admin_category_sort_label') }}</th>
+          <th style="text-align:center">{{ t('admin_category_products_label') }}</th>
+          <th>{{ t('col_actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="font-family:monospace;font-size:0.8rem;color:var(--text-muted);white-space:nowrap">{{ cat.slug }}</td>
+          <td style="font-weight:700">{{ cat.name_de }}</td>
+          <td>{{ cat.name_tr or '–' }}</td>
+          <td>{{ cat.name_en or '–' }}</td>
+          <td style="text-align:center">{{ cat.sort_order }}</td>
+          <td style="text-align:center">
+            <span class="badge {% if cat.product_count > 0 %}badge-delivered{% else %}badge-pending{% endif %}">
+              {{ cat.product_count }}
+            </span>
+          </td>
+          <td>
+            <div class="action-btns">
+              <a href="/admin/kategorien/{{ cat.id }}/edit" class="action-btn" title="{{ t('admin_edit_btn') }}">✏️</a>
+              {% if cat.product_count == 0 %}
+              <form method="post" action="/admin/kategorien/{{ cat.id }}/loeschen" style="display:inline">
+                <button class="action-btn" title="{{ t('admin_delete_category_btn') }}"
+                  data-confirm="Kategorie ‟{{ cat.name_de }}" wirklich löschen?">🗑️</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">
+            {{ t('admin_no_categories') }}
+            <a href="/admin/kategorien/neu">{{ t('admin_create_now') }}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

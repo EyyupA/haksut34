@@ -35,7 +35,13 @@ export default async function adminRoutes(fastify) {
       return render(reply, 'admin/login.html', req, { error: 'Ungültige Zugangsdaten' })
     }
     const token = makeSessionToken(user.username)
-    reply.setCookie(SESSION_COOKIE, token, { httpOnly: true, sameSite: 'lax', maxAge: 86400 * 7, path: '/' })
+    reply.setCookie(SESSION_COOKIE, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 86400 * 7,
+      path: '/',
+    })
     return reply.redirect('/admin/')
   })
 
@@ -132,7 +138,7 @@ export default async function adminRoutes(fastify) {
     })
 
     fastify.get('/produkte/neu', async (req, reply) => {
-      const cats = queries.categories.all().map(r => r.category)
+      const cats = queries.allCategories.all()
       return render(reply, 'admin/product_form.html', req, { active: 'products', product: null, categories: cats, error: null })
     })
 
@@ -145,7 +151,7 @@ export default async function adminRoutes(fastify) {
     fastify.get('/produkte/:id/edit', async (req, reply) => {
       const product = queries.productById.get(parseInt(req.params.id))
       if (!product) return reply.status(404).send('Nicht gefunden')
-      const cats = queries.categories.all().map(r => r.category)
+      const cats = queries.allCategories.all()
       return render(reply, 'admin/product_form.html', req, { active: 'products', product, categories: cats, error: null })
     })
 
@@ -166,6 +172,52 @@ export default async function adminRoutes(fastify) {
     fastify.post('/produkte/:id/loeschen', async (req, reply) => {
       queries.deleteProduct.run(parseInt(req.params.id))
       return reply.redirect('/admin/produkte')
+    })
+
+    // ── Categories ─────────────────────────────────────────────────────────────
+    fastify.get('/kategorien', async (req, reply) => {
+      const error = req.query.error || null
+      return render(reply, 'admin/categories.html', req, {
+        active: 'categories',
+        categories: queries.allCategories.all(),
+        error,
+      })
+    })
+
+    fastify.get('/kategorien/neu', async (req, reply) => {
+      return render(reply, 'admin/category_form.html', req, { active: 'categories', category: null, error: null })
+    })
+
+    fastify.post('/kategorien/neu', async (req, reply) => {
+      const { slug, name_de, name_tr, name_en, sort_order } = req.body
+      if (!slug || !name_de) {
+        return render(reply, 'admin/category_form.html', req, {
+          active: 'categories', category: req.body, error: 'Slug und Deutscher Name sind Pflichtfelder.',
+        })
+      }
+      queries.insertCategory.run({ slug, name_de, name_tr: name_tr || '', name_en: name_en || '', sort_order: parseInt(sort_order) || 0 })
+      return reply.redirect('/admin/kategorien')
+    })
+
+    fastify.get('/kategorien/:id/edit', async (req, reply) => {
+      const cat = queries.categoryById.get(parseInt(req.params.id))
+      if (!cat) return reply.status(404).send('Nicht gefunden')
+      return render(reply, 'admin/category_form.html', req, { active: 'categories', category: cat, error: null })
+    })
+
+    fastify.post('/kategorien/:id/edit', async (req, reply) => {
+      const id = parseInt(req.params.id)
+      const { name_de, name_tr, name_en, sort_order } = req.body
+      queries.updateCategory.run({ id, name_de, name_tr: name_tr || '', name_en: name_en || '', sort_order: parseInt(sort_order) || 0 })
+      return reply.redirect('/admin/kategorien')
+    })
+
+    fastify.post('/kategorien/:id/loeschen', async (req, reply) => {
+      const id = parseInt(req.params.id)
+      const { c } = queries.categoryProductCount.get(id)
+      if (c > 0) return reply.redirect('/admin/kategorien?error=in_use')
+      queries.deleteCategory.run(id)
+      return reply.redirect('/admin/kategorien')
     })
   })
 }

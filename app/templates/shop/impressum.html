@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Impressum – Haksüt34{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;margin:0 auto">
+
+  <div class="notice notice-warning mb-2" style="font-size:0.85rem">
+    ⚠️ <strong>Hinweis für den Betreiber:</strong> Bitte ersetzen Sie alle <code>[PLATZHALTER]</code> durch Ihre tatsächlichen Unternehmensangaben, bevor diese Seite live geht. Diese Angaben sind gesetzlich vorgeschrieben.
+  </div>
+
+  <div class="card">
+    <h1 style="font-size:1.6rem;font-weight:900;margin-bottom:1.5rem">Impressum</h1>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Angaben gemäß § 5 TMG</h2>
+    <p>
+      <strong>[FIRMENNAME]</strong><br>
+      [STRASSE UND HAUSNUMMER]<br>
+      [PLZ STADT]<br>
+      [LAND]
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Vertreten durch</h2>
+    <p>[VORNAME NACHNAME (Geschäftsführer / Inhaber)]</p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Kontakt</h2>
+    <p>
+      Telefon: <a href="tel:[TELEFONNUMMER]">[TELEFONNUMMER]</a><br>
+      E-Mail: <a href="mailto:{{ t('contact_email') }}">{{ t('contact_email') }}</a>
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Handelsregister</h2>
+    <p>
+      Registernummer: [KvK-Nummer / HRB-Nummer]<br>
+      Registergericht: [Registergericht / Kamer van Koophandel]
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Umsatzsteuer-Identifikationsnummer</h2>
+    <p>
+      Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG:<br>
+      [DE-USt-IdNr. / NL-BTW-Nr.]
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+    <p>
+      [VORNAME NACHNAME]<br>
+      [ADRESSE]
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Streitschlichtung</h2>
+    <p>
+      Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+      <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">
+        https://ec.europa.eu/consumers/odr/
+      </a>
+    </p>
+    <p>
+      Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+    </p>
+
+    <h2 style="font-size:1.05rem;font-weight:800;margin:1.5rem 0 0.5rem">Haftung für Inhalte</h2>
+    <p style="font-size:0.9rem;color:var(--text-muted);line-height:1.7">
+      Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
+    </p>
+  </div>
+
+  <div style="margin-top:1.5rem;text-align:center">
+    <a href="/" class="btn btn-outline">← {{ t('back_to_shop') }}</a>
+    <a href="/datenschutz" class="btn btn-outline" style="margin-left:0.75rem">{{ t('footer_datenschutz') }}</a>
+  </div>
+
+</div>
+{% endblock %}

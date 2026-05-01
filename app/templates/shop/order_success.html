@@ -51,11 +51,7 @@
 
     <div style="background:var(--bg);border-radius:var(--radius-sm);padding:1rem;text-align:left;font-size:0.88rem;margin-bottom:1.5rem">
       <div style="font-weight:800;margin-bottom:0.4rem">📍 {{ t('delivery_address') }}</div>
-      <div>{{ order.customer_name }}</div>
-      <div>{{ order.customer_address }}</div>
-      <div>{{ order.customer_zip }} {{ order.customer_city }}</div>
-      <div>{{ order.customer_country }}</div>
-      {% if order.customer_phone %}<div style="margin-top:0.25rem">📞 {{ order.customer_phone }}</div>{% endif %}
+      <div>{{ order.customer_city }}, {{ order.customer_country }}</div>
     </div>
 
     <div class="notice notice-info" style="text-align:left;margin-bottom:1.5rem;font-size:0.85rem">

@@ -1,7 +1,12 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 
-const SECRET = process.env.SECRET_KEY || 'changeme-set-SECRET_KEY-in-env'
+// Fallback: zufälliger Schlüssel pro Start (sicher, aber Sessions enden bei Neustart).
+// In Produktion immer SECRET_KEY als Umgebungsvariable setzen.
+const SECRET = process.env.SECRET_KEY || (() => {
+  console.warn('⚠️  SECRET_KEY nicht gesetzt – temporärer Zufallsschlüssel aktiv. Sessions enden bei Neustart.')
+  return randomBytes(32).toString('hex')
+})()
 
 export function makeSessionToken(username) {
   const ts = String(Date.now())

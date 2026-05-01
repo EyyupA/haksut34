@@ -6,7 +6,7 @@ import staticFiles from '@fastify/static'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-import { seedProducts } from './db.js'
+import { seedProducts, seedCategories } from './db.js'
 import { makeT, createNunjucksEnv } from './i18n.js'
 import { hashPassword } from './auth.js'
 import { queries } from './db.js'
@@ -18,7 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.join(__dirname, '..')
 
 // ── App ────────────────────────────────────────────────────────────────────────
-const app = Fastify({ logger: { level: process.env.LOG_LEVEL || 'info' } })
+const app = Fastify({ trustProxy: true, logger: { level: process.env.LOG_LEVEL || 'info' } })
 
 // ── Nunjucks ───────────────────────────────────────────────────────────────────
 const njk = createNunjucksEnv(path.join(ROOT, 'templates'))
@@ -62,7 +62,11 @@ app.addHook('preHandler', (req, reply, done) => {
 app.get('/sprache/:lang', (req, reply) => {
   const lang = ['de', 'tr', 'en'].includes(req.params.lang) ? req.params.lang : 'de'
   reply.setCookie('lang', lang, { maxAge: 365 * 24 * 3600, path: '/', sameSite: 'lax' })
-  return reply.redirect(req.headers.referer || '/')
+  // Nur auf denselben Ursprung weiterleiten – verhindert Open-Redirect-Angriffe über Referer
+  const referer = req.headers.referer || ''
+  const origin = `${req.protocol}://${req.hostname}`
+  const target = referer.startsWith(origin) ? referer : '/'
+  return reply.redirect(target)
 })
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
@@ -72,6 +76,7 @@ await app.register(adminRoutes, { prefix: '/admin' })
 
 // ── Start ──────────────────────────────────────────────────────────────────────
 seedProducts()
+seedCategories()
 seedAdmin()
 
 await app.listen({ port: 8000, host: '0.0.0.0' })

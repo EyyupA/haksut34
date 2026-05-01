@@ -4,7 +4,7 @@ services:
   app:
     build: ./app
     environment:
-      - DATABASE_URL=sqlite:////data/haksut34.db
+      - DATABASE_PATH=/data/haksut34.db
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER}

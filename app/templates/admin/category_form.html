@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ t('admin_edit_category') if category and category.id else t('admin_new_category_title') }}{% endblock %}
+{% block topbar_title %}{{ t('admin_edit_category') if category and category.id else t('admin_new_category_title') }}{% endblock %}
+
+{% block content %}
+
+<div style="max-width:640px">
+  <a href="/admin/kategorien" style="color:var(--text-muted);font-size:0.88rem;text-decoration:none;display:inline-block;margin-bottom:1rem">
+    {{ t('admin_back_to_categories') }}
+  </a>
+
+  {% if error %}
+  <div class="notice notice-danger mb-2">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="post"
+    action="{{ '/admin/kategorien/' ~ category.id ~ '/edit' if category and category.id else '/admin/kategorien/neu' }}">
+
+    {% if not (category and category.id) %}
+    <div class="card mb-2">
+      <h3 class="card-title">🔑 {{ t('admin_category_slug_label') }}</h3>
+      <div class="form-group">
+        <label class="form-label">Slug <span class="required">*</span></label>
+        <input type="text" name="slug" class="form-input" required
+          value="{{ category.slug if category else '' }}"
+          placeholder="z.B. Milchprodukte"
+          style="font-family:monospace">
+        <small style="color:var(--text-muted);font-size:0.8rem;display:block;margin-top:0.35rem">
+          {{ t('admin_category_slug_hint') }}
+        </small>
+      </div>
+    </div>
+    {% else %}
+    <div class="card mb-2" style="background:var(--bg-muted,#f8f5f0)">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <span style="font-size:0.82rem;color:var(--text-muted)">{{ t('admin_category_slug_label') }}:</span>
+        <code style="font-size:0.9rem;font-weight:700;background:#eee;padding:0.2rem 0.6rem;border-radius:6px">{{ category.slug }}</code>
+        <small style="color:var(--text-muted);font-size:0.78rem">({{ t('admin_category_slug_hint') }})</small>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-2">
+      <h3 class="card-title">🌍 {{ t('admin_category_names_section') }}</h3>
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label">🇩🇪 Deutsch <span class="required">*</span></label>
+          <input type="text" name="name_de" class="form-input" required
+            value="{{ category.name_de if category else '' }}" placeholder="Milchprodukte">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🇹🇷 Türkçe</label>
+          <input type="text" name="name_tr" class="form-input"
+            value="{{ category.name_tr if category else '' }}" placeholder="Süt Ürünleri">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🇬🇧 English</label>
+          <input type="text" name="name_en" class="form-input"
+            value="{{ category.name_en if category else '' }}" placeholder="Dairy Products">
+        </div>
+      </div>
+      <div class="form-group" style="max-width:180px">
+        <label class="form-label">{{ t('admin_category_sort_label') }}</label>
+        <input type="number" name="sort_order" class="form-input" min="0"
+          value="{{ category.sort_order if category else 0 }}" placeholder="0">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem">
+      <button type="submit" class="btn btn-primary btn-lg">
+        💾 {{ t('admin_save_category_btn') if (category and category.id) else t('admin_create_category_btn') }}
+      </button>
+      <a href="/admin/kategorien" class="btn btn-outline">{{ t('admin_cancel_btn_text') }}</a>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

@@ -53,11 +53,39 @@
         📸 {{ t('footer_instagram') }}
       </a>
     </div>
+    <div style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.85rem">
+      <a href="/impressum" style="color:inherit;opacity:0.7;text-decoration:none;hover:opacity:1">{{ t('footer_impressum') }}</a>
+      <a href="/datenschutz" style="color:inherit;opacity:0.7;text-decoration:none">{{ t('footer_datenschutz') }}</a>
+    </div>
     <div style="color:#666;font-size:0.82rem">
       © {{ currentYear }} Haksüt34. {{ t('footer_rights') }}.
     </div>
   </div>
+  <div style="border-top:1px solid rgba(255,255,255,0.08);margin-top:1.25rem;padding-top:0.9rem;text-align:center;font-size:0.8rem;color:#888">
+    Entwickelt von <a href="https://allrounder.dev" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700;text-decoration:none">allrounder.dev</a>
+  </div>
 </footer>
+
+<div id="cookie-banner" style="position:fixed;bottom:0;left:0;right:0;background:rgba(28,22,16,0.97);color:#f5f0e8;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;z-index:9999;box-shadow:0 -2px 16px rgba(0,0,0,0.3)">
+  <p style="margin:0;font-size:0.87rem;flex:1;line-height:1.5">
+    🍪 {{ t('cookie_banner_text') }}
+    <a href="/datenschutz" style="color:var(--primary-light,#d4a754);text-decoration:underline;margin-left:0.35rem">{{ t('footer_datenschutz') }}</a>
+  </p>
+  <button onclick="dismissCookieBanner()" class="btn btn-sm btn-primary" style="white-space:nowrap;flex-shrink:0">
+    {{ t('cookie_banner_btn') }}
+  </button>
+</div>
+<script>
+(function(){
+  if(localStorage.getItem('cookie_ok')){
+    document.getElementById('cookie-banner').style.display='none';
+  }
+})();
+function dismissCookieBanner(){
+  localStorage.setItem('cookie_ok','1');
+  document.getElementById('cookie-banner').style.display='none';
+}
+</script>
 
 <script src="/static/js/cart.js"></script>
 {% block scripts %}{% endblock %}

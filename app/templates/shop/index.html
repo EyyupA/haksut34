@@ -34,8 +34,8 @@
     {{ t('categories_all') }}
   </button>
   {% for cat in categories %}
-  <button class="cat-btn" data-cat="{{ cat }}" onclick="filterCategory(this, '{{ cat }}')">
-    {{ cat }}
+  <button class="cat-btn" data-cat="{{ cat }}" onclick="filterCategory(this, this.dataset.cat)">
+    {{ categoryNames[cat] if categoryNames[cat] else cat }}
   </button>
   {% endfor %}
 </div>
