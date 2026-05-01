@@ -75,7 +75,7 @@ export default async function shopRoutes(fastify) {
         customer_zip: body.customer_zip,
         customer_country: body.customer_country || 'Deutschland',
         customer_note: body.customer_note || null,
-        language: body.language || 'de',
+        language: body.language || 'tr',
       })
       const orderId = info.lastInsertRowid
 

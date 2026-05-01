@@ -49,7 +49,7 @@ function orderCtx(order) {
 }
 
 export async function sendOrderConfirmation(order) {
-  const lang = order.language || 'de'
+  const lang = order.language || 'tr'
   const ctx = orderCtx(order)
   let html
   try { html = emailEnv.render(`order_confirmation_${lang}.html`, ctx) }
