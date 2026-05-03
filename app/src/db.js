@@ -983,73 +983,12 @@ export function seedProducts() {
   console.log("✅ 39 Produkte geseedet");
 }
 
-// Migration for existing databases: fills Arabic names and renames changed products
-export function migrateArabicNames() {
-  // Rename olive oil products that had size suffix removed
-  db.prepare("UPDATE products SET name_de='Kaltgepresstes Olivenöl', name_tr='Soğuk Sıkım Zeytinyağı' WHERE name_de IN ('Kaltgepresstes Olivenöl 5 L', 'Kaltgepresstes Olivenöl 1 L')").run();
-
-  const upd = db.prepare("UPDATE products SET name_ar=?, description_ar=? WHERE name_de=? AND (name_ar='' OR name_ar IS NULL)");
-  const pairs = [
-    ['حليب الجاموس','حليب جاموس طازج من هولندا – كريمي بشكل استثنائي وغني بالمغذيات.','Büffelmilch'],
-    ['زبادي الجاموس','زبادي الجاموس كثيف القشدة – طبيعي وخالٍ من المضافات.','Büffeljoghurt'],
-    ['قشدة الجاموس (قيمق)','قشدة جاموس ناعمة وكثيفة – تُقدَّم تقليدياً مع العسل والخبز الطازج.','Büffelrahm (Kaymak)'],
-    ['جبن جاموس طازج','جبن أبيض طري وطازج من حليب الجاموس – خفيف الطعم وعطري.','Frischer Büffelkäse'],
-    ['جبن لور الجاموس','جبن لور طازج من حليب الجاموس – خفيف وكريمي، مثالي لوجبة الفطور.','Büffel-Lor-Käse'],
-    ['حليب الماعز','حليب ماعز طازج من هولندا – سهل الهضم وغني بالمغذيات.','Ziegenmilch'],
-    ['زبادي الماعز','زبادي طبيعي من حليب الماعز – خفيف وسهل الهضم.','Ziegenjoghurt'],
-    ['جبن كاشار الماعز','جبن كاشار نصف صلب من حليب الماعز – حار الطعم وينذاب بسهولة.','Ziegen-Kaşar-Käse'],
-    ['جبن أبيض من الماعز','جبن أبيض كلاسيكي من حليب الماعز – خفيف المذاق المالح وكريمي.','Weißer Ziegenkäse'],
-    ['جبن ماعز طازج','جبن ماعز طازج صغير – ناعم ومتعدد الاستخدامات.','Frischer Ziegenkäse'],
-    ['زبدة البحر الأسود','زبدة تقليدية مميزة من منطقة البحر الأسود – غنية النكهة بشكل استثنائي.','Schwarzmeer-Butter (Karadeniz)'],
-    ['جبن قرية يوروك (طازج)','جبن أبيض طازج على طريقة الرحّالة – مصنوع يدوياً من حليب خام.','Yörük-Dorfkäse (frisch)'],
-    ['جبن القرية بالأعشاب','جبن قرية طازج بالأعشاب الجبلية العطرية – نموذجي لشرق الأناضول.','Kräuter-Dorfkäse (Otlu)'],
-    ['جبن كويماك (جبن ذائب)','جبن طري مثالي للإذابة – مثالي لطبق الكويماك التقليدي.','Kuymak-Käse (Schmelzkäse)'],
-    ['جبن الخيوط مع جوكيليك','جبن خيوط ممتد محشو بجوكيليك – مصنوع بطريقة حرفية يدوية.','Fadenkäse mit Çökelek'],
-    ['جبن مضفور','جبن مضفور على الطريقة التركية التقليدية – ناعم وليفي.','Örgü-Käse (geflochten)'],
-    ['جبن الدل (جبن اللسان)','جبن خفيف وليفي وطري – مثالي كوجبة خفيفة أو لوجبة الفطور.','Dil-Käse (Zungenkäse)'],
-    ['جبن تولوم في بيدون','جبن تولوم مُعتَّق في وعاء معدني – قوي الطعم وعطري ومميز.','Bidon-Tulum-Käse'],
-    ['جبن سيسيل خيوط 800 غرام','جبن سيسيل أرمني-تركي – ليفي وخفيف وعطري.','Cecil-Fadenkäse 800g'],
-    ['جبن سيسيل خيوط 400 غرام','جبن سيسيل أرمني-تركي – ليفي وخفيف وعطري.','Cecil-Fadenkäse 400g'],
-    ['زبدة','زبدة طبيعية – كريمية وغنية المذاق.','Butter'],
-    ['جبن أزين','جبن أبيض أسطوري من أزين – محمي بمؤشر جغرافي، غني المذاق ومالح.','Ezine-Käse'],
-    ['جبن السلة (سيبت)','جبن أبيض مُعتَّق في سلة صفصاف – بنية سلة دقيقة، عطري ومالح.','Korbkäse (Sepet)'],
-    ['كاشار كارس المُعتَّق','جبن كاشار مُعتَّق تقليدياً من كارس – مكثف ومذاق جوزي لا يُضاهى.','Gereifter Kars-Kaşar'],
-    ['جبن أعشاب فان','جبن أبيض من فان بأعشاب برية عطرية – ربيعي الطعم وحار.','Van-Kräuterkäse (Otlu)'],
-    ['جبن تولوم أرزينجان','جبن تولوم مُعتَّق من أرزينجان – قوي العطر وهش قليلاً.','Erzincan-Tulum-Käse'],
-    ['جبن تولوم بالحبة السوداء','جبن تولوم بالحبة السوداء – عطري ومميز الطعم.','Schwarzkümmel-Tulum-Käse'],
-    ['بورك الماء (دائري)','بورك الماء محلي الصنع بشكل دائري – مقرمش من الخارج وطري من الداخل.','Wasserbörek rund'],
-    ['بورك الماء (مستطيل)','بورك الماء محلي الصنع بشكل مستطيل – كلاسيكي وطري.','Wasserbörek eckig'],
-    ['يوفكا قروي طازج (عبوة 5 قطع)','يوفكا قروي طازج رفيع – مناسب لمختلف الوصفات التركية.','Frisches Dorfyufka (5er-Pack)'],
-    ['مانتي باللحم المفروم','مانتي تركي صغير محشو باللحم المفروم – يُقدَّم مع الزبادي والزبدة.','Hackfleisch-Manti „Tuna"'],
-    ['زيت زيتون بكر ممتاز','زيت زيتون بكر ممتاز معصور بالبرد – ذهبي مخضر وعطري.','Kaltgepresstes Olivenöl'],
-    ['زيتون أسود (جمليك)','زيتون أسود مُعتَّق طبيعياً من جمليك – خفيف الطعم ولحمي.','Schwarze Oliven (Gemlik)'],
-    ['زيتون أخضر (شيزيك)','زيتون أخضر مشقوق بالثوم والأعشاب – حار ومقرمش.','Grüne Oliven (Çizik)'],
-    ['زيتون مشكل (أسود وأخضر)','مزيج من الزيتون الأسود والأخضر – وجبة خفيفة مثالية.','Gemischte Oliven (Schwarz & Grün)'],
-    ['دلو زيتون (أسود وأخضر)','كمية كبيرة من الزيتون المشكل للعائلات والمطاعم.','Oliven-Eimer (Schwarz & Grün)'],
-    ['عسل خام طبيعي','عسل بري غير معالج من جبال الأناضول – خام وطبيعي وعطري.','Rohhonig (Naturhonig)'],
-    ['عسل كاراكوفان البري','عسل بري نادر من خلايا كاراكوفان – غني بالمغذيات وعطري جداً.','Karakovan-Wildhonig'],
-    ['عسل الشمع','عسل مباشرة في قرص الشهد الطبيعي – نقي وطبيعي ومركّز.','Wabenhonig'],
-    ['عسل الشمع الفاتح','عسل شمع فاتح اللون من سيواس – زهري الرائحة ولطيف الطعم.','Wabenhonig hell (Açık Çıta)'],
-    ['عسل الشمع الداكن','عسل شمع داكن اللون وقوي المذاق – طبيعي 100% مع قرص الشهد.','Wabenhonig dunkel (Petek Çıta)'],
-    ['عسل الكستناء','عسل الكستناء الداكن والقوي – ذو طابع مميز مع لمسة خفيفة من المرارة.','Kastanienhonig'],
-  ];
-  db.transaction(() => { for (const [name_ar, description_ar, name_de] of pairs) upd.run(name_ar, description_ar, name_de) })();
-
-  const updCat = db.prepare("UPDATE categories SET name_ar=? WHERE slug=? AND (name_ar='' OR name_ar IS NULL)");
-  db.transaction(() => {
-    updCat.run('منتجات الألبان', 'Milchprodukte');
-    updCat.run('أجبان تركية',    'Türkische Käsesorten');
-    updCat.run('مخبوزات',        'Backwaren');
-    updCat.run('زيتون وزيت',     'Oliven & Öl');
-    updCat.run('عسل',            'Honig');
-  })();
-}
 
 export function seedCategories() {
   const { c } = db.prepare("SELECT COUNT(*) as c FROM categories").get();
   if (c > 0) return;
   const insert = db.transaction((items) => {
-    for (const item of items) queries.insertCategory.run({ name_ar: '', ...item });
+    for (const item of items) queries.insertCategory.run({ name_en: '', ...item });
   });
   insert([
     { slug: "Milchprodukte",          name_de: "Milchprodukte",         name_tr: "Süt Ürünleri",          name_ar: "منتجات الألبان", sort_order: 1 },

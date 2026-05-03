@@ -6,7 +6,7 @@ import staticFiles from '@fastify/static'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-import { seedProducts, seedCategories, migrateArabicNames } from './db.js'
+import { seedProducts, seedCategories } from './db.js'
 import { makeT, createNunjucksEnv } from './i18n.js'
 import { hashPassword } from './auth.js'
 import { queries } from './db.js'
@@ -80,7 +80,6 @@ await app.register(adminRoutes, { prefix: '/admin' })
 // ── Start ──────────────────────────────────────────────────────────────────────
 seedProducts()
 seedCategories()
-migrateArabicNames()
 seedAdmin()
 
 await app.listen({ port: 8000, host: '0.0.0.0' })
