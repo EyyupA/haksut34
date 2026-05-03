@@ -129,21 +129,7 @@
           <td style="text-align:center;font-size:1.1rem">{{ '✅' if order.is_paid else '❌' }}</td>
           <td>
             <div class="action-btns">
-              <a href="/admin/bestellungen/{{ order.id }}" class="action-btn" title="{{ t('col_actions') }}">👁</a>
-              {% if order.status == 'cancelled' %}{% else %}
-              <form method="post" action="/admin/bestellungen/{{ order.id }}/bezahlt" style="display:inline">
-                <button class="action-btn" title="{{ t('admin_mark_paid_btn') }}">💶</button>
-              </form>
-              {% if order.status == 'pending' %}
-              <form method="post" action="/admin/bestellungen/{{ order.id }}/bestaetigt" style="display:inline">
-                <button class="action-btn" title="{{ t('admin_confirm_btn') }}">✅</button>
-              </form>
-              {% endif %}
-              <form method="post" action="/admin/bestellungen/{{ order.id }}/stornieren" style="display:inline">
-                <button class="action-btn" title="{{ t('admin_cancel_btn') }}"
-                  data-confirm="{{ t('admin_cancel_order_modal_text') }}">❌</button>
-              </form>
-              {% endif %}
+              <a href="/admin/bestellungen/{{ order.id }}" class="btn btn-outline btn-sm">👁 {{ t('col_actions') }}</a>
             </div>
           </td>
         </tr>
