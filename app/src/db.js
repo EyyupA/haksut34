@@ -1056,6 +1056,14 @@ export function seedArabicNames() {
     { name_de: 'Wabenhonig',                   name_ar: 'عسل الشمع',                 description_ar: 'عسل مباشرة في قرص الشهد الطبيعي – نقي وطبيعي ومركّز.' },
     { name_de: 'Wabenhonig hell (Açık Çıta)',  name_ar: 'عسل الشمع الفاتح',          description_ar: 'عسل شمع فاتح اللون من سيواس – زهري الرائحة ولطيف الطعم.' },
     { name_de: 'Kastanienhonig',               name_ar: 'عسل الكستناء',              description_ar: 'عسل الكستناء الداكن والقوي – ذو طابع مميز مع لمسة خفيفة من المرارة.' },
+    { name_de: 'Hackfleisch-Manti „Tuna"',     name_ar: 'مانتي باللحم المفروم "تونا"', description_ar: 'مانتي تركي صغير محشو باللحم المفروم – يُقدَّم مع الزبادي والزبدة.' },
+    { name_de: 'Frisches Dorfyufka (5er-Pack)', name_ar: 'يوفكا قروي طازج (عبوة 5 قطع)', description_ar: 'يوفكا قروي طازج رفيع – مناسب لمختلف الوصفات التركية.' },
+    { name_de: 'Kaltgepresstes Olivenöl 5 L',  name_ar: 'زيت زيتون بكر ممتاز 5 لتر',   description_ar: 'زيت زيتون بكر ممتاز معصور بالبرد – عبوة 5 لتر اقتصادية.' },
+    { name_de: 'Kaltgepresstes Olivenöl 1 L',  name_ar: 'زيت زيتون بكر ممتاز 1 لتر',   description_ar: 'زيت زيتون بكر ممتاز معصور بالبرد – عبوة 1 لتر.' },
+    { name_de: 'Gemischte Oliven (Schwarz & Grün)', name_ar: 'زيتون مشكل (أسود وأخضر)', description_ar: 'مزيج من الزيتون الأسود والأخضر – وجبة خفيفة مثالية.' },
+    { name_de: 'Oliven-Eimer (Schwarz & Grün)', name_ar: 'دلو زيتون (أسود وأخضر)',      description_ar: 'كمية كبيرة من الزيتون المشكل للعائلات والمطاعم.' },
+    { name_de: 'Karakovan-Wildhonig',           name_ar: 'عسل كاراكوفان البري',          description_ar: 'عسل بري نادر من خلايا كاراكوفان – غني بالمغذيات وعطري جداً.' },
+    { name_de: 'Wabenhonig dunkel (Petek Çıta)', name_ar: 'عسل الشمع الداكن (بيتك چيتا)', description_ar: 'عسل شمع داكن اللون وقوي المذاق – طبيعي 100% مع قرص الشهد.' },
   ]
 
   const upd = db.prepare("UPDATE products SET name_ar=?, description_ar=? WHERE name_de=? AND (name_ar='' OR name_ar IS NULL)")
