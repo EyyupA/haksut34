@@ -2,19 +2,10 @@
 
 {% block title %}{{ t('site_title') }}{% endblock %}
 
-{% block hero %}
-<div class="hero">
-  <img src="/static/img/logo.png" alt="Haksüt34" class="hero-logo" onerror="this.style.display='none'">
-  <h1>Haksüt34</h1>
-  <p>{{ t('tagline') }}</p>
-  <p style="font-size:0.95rem;opacity:0.8;margin-top:0.5rem">{{ t('tagline_sub') }}</p>
-</div>
-{% endblock %}
-
 {% block content %}
 
-{# Banner wenn Kunde Artikel zu bestehender Bestellung hinzufügt #}
-<div id="add-to-order-banner" class="hidden" style="background:linear-gradient(135deg,var(--secondary),#256428);color:white;padding:0.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin:-2rem -1.5rem 1.5rem;border-radius:var(--radius-sm)">
+{# ── Add-to-order mode banner ─────────────────────────────────── #}
+<div id="add-to-order-banner" class="hidden" style="background:linear-gradient(135deg,#2A1810,#5D2E0D);color:white;padding:0.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin:-2rem -1.5rem 1.5rem;border-radius:var(--radius-sm)">
   <div style="display:flex;align-items:center;gap:0.75rem">
     <span style="font-size:1.4rem">🛒</span>
     <div>
@@ -24,66 +15,114 @@
   </div>
   <div style="display:flex;gap:0.5rem">
     <button onclick="cancelAddMode()" class="btn btn-outline btn-sm" style="background:transparent;border-color:rgba(255,255,255,0.5);color:white">✕ {{ t('cancel_order') }}</button>
-    <button onclick="finishAddMode()" class="btn btn-sm" style="background:white;color:var(--secondary);font-weight:800">✓ {{ t('save_changes') }} →</button>
+    <button onclick="finishAddMode()" class="btn btn-sm" style="background:white;color:#2A1810;font-weight:800">✓ {{ t('save_changes') }} →</button>
   </div>
 </div>
 
-{% if categories | length > 1 %}
-<div class="categories">
-  <button class="cat-btn active" data-cat="all" onclick="filterCategory(this, 'all')">
+{# ── Info Banner ──────────────────────────────────────────────── #}
+<div class="info-banner">
+  <span style="flex-shrink:0">📍</span>
+  <span>{{ t('info_banner') }}</span>
+</div>
+
+{# ── Search + Tabs ─────────────────────────────────────────────── #}
+<div class="search-tabs-row">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="product-search" class="search-input"
+      placeholder="{{ t('search_placeholder') }}"
+      oninput="searchProducts(this.value)">
+  </div>
+  <div class="tab-nav">
+    <a href="/" class="tab-btn active">{{ t('nav_shop') }}</a>
+    <a href="/bestellung/suchen" class="tab-btn">{{ t('nav_order_lookup') }}</a>
+  </div>
+</div>
+
+{# ── Category Filter ───────────────────────────────────────────── #}
+{% if categories | length > 0 %}
+<div class="cat-filter-panel">
+  <button class="cat-pill active" data-cat="all" onclick="filterCategory('all')">
     {{ t('categories_all') }}
+    <span class="cat-pill-badge">{{ products | length }}</span>
   </button>
   {% for cat in categories %}
-  <button class="cat-btn" data-cat="{{ cat }}" onclick="filterCategory(this, this.dataset.cat)">
+  <button class="cat-pill" data-cat="{{ cat }}" onclick="filterCategory('{{ cat }}')">
     {{ categoryNames[cat] if categoryNames[cat] else cat }}
+    <span class="cat-pill-badge">{{ catCounts[cat] or 0 }}</span>
   </button>
   {% endfor %}
 </div>
 {% endif %}
 
+{# ── Product Sections ──────────────────────────────────────────── #}
 {% if products %}
-<div class="products-grid" id="products-grid">
-  {% for product in products %}
-  <div class="product-card" data-cat="{{ product.category }}">
-    {% if product.image_url %}
-    <img src="{{ product.image_url }}" alt="{{ product['name_' ~ lang] if product['name_' ~ lang] else product.name_de }}" loading="lazy"
-      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="product-img-placeholder" style="display:none">🥛</div>
-    {% else %}
-    <div class="product-img-placeholder">🥛</div>
-    {% endif %}
-    <div class="product-info">
-      <h3 class="product-name">
-        {% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}
-        {% elif lang == 'en' and product.name_en %}{{ product.name_en }}
-        {% else %}{{ product.name_de }}{% endif %}
-      </h3>
-      <p class="product-desc">
-        {% if lang == 'tr' and product.description_tr %}{{ product.description_tr }}
-        {% elif lang == 'en' and product.description_en %}{{ product.description_en }}
-        {% else %}{{ product.description_de }}{% endif %}
-      </p>
-      <div class="product-footer">
-        <div>
-          <span class="product-price">{{ product.price | eur }}</span>
-          <span class="product-unit">/ {{ product.unit }}</span>
+
+{% for cat in categories %}
+<section class="cat-section" data-cat="{{ cat }}">
+  <h2 class="cat-heading">{{ categoryNames[cat] if categoryNames[cat] else cat }}</h2>
+  <div class="cat-divider">◆</div>
+  <div class="products-list">
+    {% for product in products %}
+    {% if product.category == cat %}
+    <div class="product-card">
+      {% if product.image_url %}
+      <img src="{{ product.image_url }}"
+        alt="{{ product['name_' ~ lang] if product['name_' ~ lang] else product.name_de }}"
+        loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="product-img-placeholder" style="display:none">🥛</div>
+      {% else %}
+      <div class="product-img-placeholder">🥛</div>
+      {% endif %}
+
+      <div class="product-info">
+        <div class="product-name">
+          {% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}
+          {% elif lang == 'en' and product.name_en %}{{ product.name_en }}
+          {% else %}{{ product.name_de }}{% endif %}
         </div>
-        {% if product.stock != null and product.stock == 0 %}
-        <span class="badge badge-cancelled">{{ t('out_of_stock') }}</span>
-        {% else %}
-        <button class="btn-add-cart"
-          data-id="{{ product.id }}"
-          data-price="{{ product.price }}"
-          data-unit="{{ product.unit }}"
-          data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'en' and product.name_en %}{{ product.name_en }}{% else %}{{ product.name_de }}{% endif %}">
-          🛒 {{ t('add_to_cart') }}
-        </button>
+        <div class="product-code">KOD NO. {{ product.id }}</div>
+        {% set desc = product['description_' ~ lang] if product['description_' ~ lang] else product.description_de %}
+        {% if desc %}
+        <div class="product-desc">{{ desc }}</div>
         {% endif %}
+
+        <div class="product-footer">
+          <div class="product-price-area">
+            <span class="product-price">{{ product.price | eur }}</span>
+            <span class="product-unit">/ {{ product.unit }}</span>
+          </div>
+
+          {% if product.stock != null and product.stock == 0 %}
+          <span class="badge badge-cancelled">{{ t('out_of_stock') }}</span>
+          {% else %}
+          <div class="product-controls">
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="changeQty(this,-1)" type="button">−</button>
+              <span class="qty-val">1</span>
+              <button class="qty-btn" onclick="changeQty(this,1)" type="button">+</button>
+            </div>
+            <button class="btn-order"
+              type="button"
+              data-id="{{ product.id }}"
+              data-price="{{ product.price }}"
+              data-unit="{{ product.unit }}"
+              data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'en' and product.name_en %}{{ product.name_en }}{% else %}{{ product.name_de }}{% endif %}"
+              onclick="orderProduct(this)">
+              {{ t('btn_order') }}
+            </button>
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
+    {% endif %}
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
+</section>
+{% endfor %}
+
 {% else %}
 <div class="text-center" style="padding:4rem 0;color:var(--text-muted)">
   <div style="font-size:3rem;margin-bottom:1rem">🛍️</div>
@@ -91,7 +130,7 @@
 </div>
 {% endif %}
 
-<div class="notice notice-warning" style="margin-top:2rem">
+<div class="notice notice-warning" style="margin-top:1.5rem">
   💶 {{ t('payment_notice') }}
 </div>
 
@@ -99,68 +138,104 @@
 
 {% block scripts %}
 <script>
-function filterCategory(btn, cat) {
-  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.product-card').forEach(card => {
-    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+/* ── Quantity control ──────────────────────────────────────── */
+function changeQty(btn, delta) {
+  const valEl = btn.parentElement.querySelector('.qty-val');
+  let val = parseInt(valEl.textContent) + delta;
+  if (val < 1) val = 1;
+  if (val > 99) val = 99;
+  valEl.textContent = val;
+}
+
+/* ── Order button ─────────────────────────────────────────── */
+function orderProduct(btn) {
+  const id    = parseInt(btn.dataset.id);
+  const name  = btn.dataset.name;
+  const price = btn.dataset.price;
+  const unit  = btn.dataset.unit || '';
+  const qtyEl = btn.closest('.product-controls').querySelector('.qty-val');
+  const qty   = qtyEl ? (parseInt(qtyEl.textContent) || 1) : 1;
+  addToCart(id, name, price, unit, qty);
+  if (qtyEl) qtyEl.textContent = '1';
+}
+
+/* ── Category filter ─────────────────────────────────────── */
+function filterCategory(slug) {
+  document.querySelectorAll('.cat-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.cat === slug);
+  });
+  document.querySelectorAll('.cat-section').forEach(section => {
+    section.style.display = (slug === 'all' || section.dataset.cat === slug) ? '' : 'none';
+  });
+  const q = document.getElementById('product-search').value;
+  if (q) searchProducts(q);
+}
+
+/* ── Product search ──────────────────────────────────────── */
+function searchProducts(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.cat-section').forEach(section => {
+    const activeCat = document.querySelector('.cat-pill.active')?.dataset.cat || 'all';
+    if (activeCat !== 'all' && section.dataset.cat !== activeCat) return;
+    const cards = section.querySelectorAll('.product-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const name = card.querySelector('.product-name')?.textContent?.toLowerCase() || '';
+      const show = !q || name.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    section.style.display = visible === 0 ? 'none' : '';
   });
 }
 
-// ── Add-to-order mode ──────────────────────────────────────────────────────
-const ADD_MODE_KEY = 'haksut34_add_to_order'
+/* ── Add-to-order mode ───────────────────────────────────── */
+const ADD_MODE_KEY = 'haksut34_add_to_order';
 
 function initAddMode() {
-  const params = new URLSearchParams(location.search)
-  const token = params.get('add_to_order')
-
+  const params = new URLSearchParams(location.search);
+  const token = params.get('add_to_order');
   if (token) {
-    // Entering add-mode: clear cart so only new items are tracked
-    sessionStorage.setItem(ADD_MODE_KEY, token)
-    localStorage.removeItem('haksut34_cart')
-    updateCartBadge()
-    // Clean URL
-    history.replaceState({}, '', '/')
+    sessionStorage.setItem(ADD_MODE_KEY, token);
+    localStorage.removeItem('haksut34_cart');
+    updateCartBadge();
+    history.replaceState({}, '', '/');
   }
+  const activeToken = sessionStorage.getItem(ADD_MODE_KEY);
+  if (!activeToken) return;
 
-  const activeToken = sessionStorage.getItem(ADD_MODE_KEY)
-  if (!activeToken) return
-
-  const banner = document.getElementById('add-to-order-banner')
-  banner.classList.remove('hidden')
+  document.getElementById('add-to-order-banner').classList.remove('hidden');
 
   function refreshBanner() {
-    const count = getCartCount()
+    const count = getCartCount();
     document.getElementById('banner-count').textContent =
-      count > 0 ? `${count} {{ t('quantity') | lower }} {{ t('edit_add_items_title') | lower }}` : '{{ t("edit_add_items_title") }}'
+      count > 0 ? `${count} {{ t('quantity') | lower }}` : '';
   }
-  refreshBanner()
+  refreshBanner();
 
-  // Refresh badge on every cart change
-  const origSave = saveCart
+  const origSave = window.saveCart;
   window.saveCart = function(cart) {
-    origSave(cart)
-    refreshBanner()
-  }
+    origSave(cart);
+    refreshBanner();
+  };
 }
 
 function finishAddMode() {
-  const token = sessionStorage.getItem(ADD_MODE_KEY)
-  if (!token) return
-  sessionStorage.removeItem(ADD_MODE_KEY)
-  // Cart items will be picked up by the edit page
-  location.href = `/bestellung/aendern?token=${token}&from_shop=1`
+  const token = sessionStorage.getItem(ADD_MODE_KEY);
+  if (!token) return;
+  sessionStorage.removeItem(ADD_MODE_KEY);
+  location.href = `/bestellung/aendern?token=${token}&from_shop=1`;
 }
 
 function cancelAddMode() {
-  const token = sessionStorage.getItem(ADD_MODE_KEY)
-  sessionStorage.removeItem(ADD_MODE_KEY)
-  localStorage.removeItem('haksut34_cart')
-  updateCartBadge()
-  if (token) location.href = `/bestellung/aendern?token=${token}`
-  else document.getElementById('add-to-order-banner').classList.add('hidden')
+  const token = sessionStorage.getItem(ADD_MODE_KEY);
+  sessionStorage.removeItem(ADD_MODE_KEY);
+  localStorage.removeItem('haksut34_cart');
+  updateCartBadge();
+  if (token) location.href = `/bestellung/aendern?token=${token}`;
+  else document.getElementById('add-to-order-banner').classList.add('hidden');
 }
 
-document.addEventListener('DOMContentLoaded', initAddMode)
+document.addEventListener('DOMContentLoaded', initAddMode);
 </script>
 {% endblock %}

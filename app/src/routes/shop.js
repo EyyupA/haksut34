@@ -36,7 +36,9 @@ export default async function shopRoutes(fastify) {
     const productSlugs = new Set(products.map(p => p.category))
     const categories = allCats.filter(c => productSlugs.has(c.slug)).map(c => c.slug)
     for (const slug of productSlugs) if (!categories.includes(slug)) categories.push(slug)
-    return render(reply, 'shop/index.html', req, { products, categories, categoryNames })
+    const catCounts = {}
+    for (const p of products) catCounts[p.category] = (catCounts[p.category] || 0) + 1
+    return render(reply, 'shop/index.html', req, { products, categories, categoryNames, catCounts })
   })
 
   // GET /warenkorb

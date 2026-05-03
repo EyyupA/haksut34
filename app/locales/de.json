@@ -234,5 +234,11 @@
   "admin_no_categories": "Noch keine Kategorien vorhanden.",
   "admin_category_products_label": "Produkte",
   "admin_back_to_categories": "← Zurück zu Kategorien",
-  "admin_category_in_use": "Diese Kategorie wird von Produkten verwendet und kann nicht gelöscht werden."
+  "admin_category_in_use": "Diese Kategorie wird von Produkten verwendet und kann nicht gelöscht werden.",
+  "topbar_announcement": "Willkommen bei Haksüt34! Frische Büffelprodukte – natürlich, lecker, direkt vom Erzeuger. Abholung an festen Standorten in Deutschland.",
+  "info_banner": "Unsere Produkte werden frisch zubereitet und können ausschließlich an den Abholpunkten abgeholt werden. Kein Lieferservice.",
+  "btn_order": "BESTELLEN",
+  "search_placeholder": "Produkt suchen…",
+  "footer_address": "Frische Büffelprodukte aus Deutschland",
+  "footer_service": "SERVICE"
 }

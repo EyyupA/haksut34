@@ -235,5 +235,11 @@
   "admin_no_categories": "Henüz kategori yok.",
   "admin_category_products_label": "Ürünler",
   "admin_back_to_categories": "← Kategorilere Dön",
-  "admin_category_in_use": "Bu kategori ürünler tarafından kullanılmaktadır ve silinemez."
+  "admin_category_in_use": "Bu kategori ürünler tarafından kullanılmaktadır ve silinemez.",
+  "topbar_announcement": "Haksüt34'e hoş geldiniz! Taze manda ürünleri – doğal, lezzetli, üreticiden. Almanya'da sabit teslim noktalarında teslim.",
+  "info_banner": "Ürünlerimiz taze hazırlanmakta ve yalnızca teslim noktalarından teslim alınabilmektedir. Teslimat hizmeti verilmemektedir.",
+  "btn_order": "SİPARİŞ VER",
+  "search_placeholder": "Ürün ara…",
+  "footer_address": "Almanya'dan taze manda ürünleri",
+  "footer_service": "SERVİS"
 }

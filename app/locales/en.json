@@ -235,5 +235,11 @@
   "admin_no_categories": "No categories yet.",
   "admin_category_products_label": "Products",
   "admin_back_to_categories": "← Back to Categories",
-  "admin_category_in_use": "This category is used by products and cannot be deleted."
+  "admin_category_in_use": "This category is used by products and cannot be deleted.",
+  "topbar_announcement": "Welcome to Haksüt34! Fresh buffalo products – natural, delicious, straight from the producer. Pickup at fixed locations in Germany.",
+  "info_banner": "Our products are freshly prepared and can only be picked up at the designated pickup points. No delivery service.",
+  "btn_order": "ORDER",
+  "search_placeholder": "Search products…",
+  "footer_address": "Fresh buffalo products from Germany",
+  "footer_service": "SERVICE"
 }
