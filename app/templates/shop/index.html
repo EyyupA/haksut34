@@ -91,7 +91,6 @@
         <div class="product-name">
           {% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}
           {% elif lang == 'ar' and product.name_ar %}{{ product.name_ar }}
-          {% elif lang == 'en' and product.name_en %}{{ product.name_en }}
           {% else %}{{ product.name_de }}{% endif %}
         </div>
         <div class="product-code">KOD NO. {{ product.id }}</div>
@@ -120,7 +119,7 @@
               data-id="{{ product.id }}"
               data-price="{{ product.price }}"
               data-unit="{{ product.unit }}"
-              data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'ar' and product.name_ar %}{{ product.name_ar }}{% elif lang == 'en' and product.name_en %}{{ product.name_en }}{% else %}{{ product.name_de }}{% endif %}"
+              data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'ar' and product.name_ar %}{{ product.name_ar }}{% else %}{{ product.name_de }}{% endif %}"
               onclick="orderProduct(this)">
               {{ t('btn_order') }}
             </button>

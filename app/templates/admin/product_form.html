@@ -92,23 +92,25 @@
 
     <div class="card mb-2">
       <h3 class="card-title">🖼️ {{ t('admin_image_section') }}</h3>
-      {% if product and product.image_url %}
-      <div style="margin-bottom:1rem">
-        <img src="{{ product.image_url }}" id="image-preview"
-          style="max-width:200px;border-radius:var(--radius-sm);border:2px solid var(--border)">
+
+      <div id="preview-wrap" style="margin-bottom:1rem;{% if not product or not product.image_url %}display:none{% endif %}">
+        <img id="image-preview"
+          src="{{ product.image_url if product and product.image_url else '' }}"
+          onerror="this.parentElement.style.display='none'"
+          style="max-width:200px;max-height:160px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid var(--border);display:block">
       </div>
-      {% else %}
-      <img id="image-preview" src="" class="hidden" style="max-width:200px;border-radius:var(--radius-sm);margin-bottom:1rem;border:2px solid var(--border)">
-      {% endif %}
+
       <div class="form-group">
         <label class="form-label">{{ t('admin_image_upload_hint') }}</label>
         <input type="file" name="image_file" id="image-file-input" class="form-input"
-          accept=".jpg,.jpeg,.png,.webp" style="padding:0.4rem">
+          accept=".jpg,.jpeg,.png,.webp" style="padding:0.4rem"
+          onchange="previewFile(this)">
       </div>
       <div class="form-group">
         <label class="form-label">{{ t('admin_image_url_label') }}</label>
-        <input type="text" name="image_url" class="form-input"
-          value="{{ product.image_url if product else '' }}" placeholder="https://...">
+        <input type="text" name="image_url" id="image-url-input" class="form-input"
+          value="{{ product.image_url if product else '' }}" placeholder="https://..."
+          oninput="previewUrl(this.value)">
       </div>
     </div>
 
@@ -122,4 +124,36 @@
   </form>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+const preview     = document.getElementById('image-preview');
+const previewWrap = document.getElementById('preview-wrap');
+
+function showPreview(src) {
+  if (!src) { previewWrap.style.display = 'none'; return; }
+  preview.onerror = () => { previewWrap.style.display = 'none'; };
+  preview.src = src;
+  previewWrap.style.display = '';
+}
+
+function previewUrl(url) {
+  document.getElementById('image-file-input').value = '';
+  showPreview(url.trim());
+}
+
+function previewFile(input) {
+  if (!input.files || !input.files[0]) return;
+  document.getElementById('image-url-input').value = '';
+  const reader = new FileReader();
+  reader.onload = e => showPreview(e.target.result);
+  reader.readAsDataURL(input.files[0]);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const url = document.getElementById('image-url-input').value.trim();
+  if (url) showPreview(url);
+});
+</script>
 {% endblock %}
