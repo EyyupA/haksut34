@@ -357,7 +357,7 @@ export function seedProducts() {
   if (c > 0) return;
 
   const insert = db.transaction((items) => {
-    for (const p of items) queries.insertProduct.run(p);
+    for (const p of items) queries.insertProduct.run({ name_ar: '', description_ar: '', ...p });
   });
 
   insert([
@@ -1076,7 +1076,7 @@ export function seedCategories() {
   const { c } = db.prepare("SELECT COUNT(*) as c FROM categories").get();
   if (c > 0) return;
   const insert = db.transaction((items) => {
-    for (const item of items) queries.insertCategory.run(item);
+    for (const item of items) queries.insertCategory.run({ name_ar: '', ...item });
   });
   insert([
     { slug: "Milchprodukte",          name_de: "Milchprodukte",         name_tr: "Süt Ürünleri",          name_en: "Dairy Products",          sort_order: 1 },
