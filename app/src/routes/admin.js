@@ -69,7 +69,7 @@ export default async function adminRoutes(fastify) {
 
     // ── Orders ─────────────────────────────────────────────────────────────────
     fastify.get('/bestellungen', async (req, reply) => {
-      const { status, city, paid, date_from, date_to, q } = req.query
+      const { status, city, paid, date_from, date_to, q, pickup_point } = req.query
       const conditions = []
       const params = []
 
@@ -80,15 +80,18 @@ export default async function adminRoutes(fastify) {
       if (date_from) { conditions.push('date(o.created_at) >= ?'); params.push(date_from) }
       if (date_to) { conditions.push('date(o.created_at) <= ?'); params.push(date_to) }
       if (q) { conditions.push('(o.order_number LIKE ? OR o.customer_name LIKE ?)'); params.push(`%${q}%`, `%${q}%`) }
+      if (pickup_point) { conditions.push('o.pickup_point_name = ?'); params.push(pickup_point) }
 
       const orders = queries.filteredOrders(conditions.join(' AND '), params)
       const cities = queries.orderCities.all().map(r => r.customer_city)
+      const pickup_points = queries.orderPickupPoints.all().map(r => r.pickup_point_name)
 
       return render(reply, 'admin/orders.html', req, {
-        active: 'orders', orders, cities,
+        active: 'orders', orders, cities, pickup_points,
         filter_status: status || 'all', filter_city: city || '',
         filter_paid: paid || '', filter_q: q || '',
         filter_date_from: date_from || '', filter_date_to: date_to || '',
+        filter_pickup: pickup_point || '',
       })
     })
 
@@ -271,6 +274,36 @@ export default async function adminRoutes(fastify) {
     fastify.post('/abholpunkte/:id/loeschen', async (req, reply) => {
       queries.deletePickupPoint.run(parseInt(req.params.id))
       return reply.redirect('/admin/abholpunkte')
+    })
+
+    // ── Reports ────────────────────────────────────────────────────────────────
+    fastify.get('/berichte', async (req, reply) => {
+      const byStatus    = queries.reportOrdersByStatus.all()
+      const byMonth     = queries.reportRevenueByMonth.all()
+      const topProducts = queries.reportTopProducts.all()
+      const byPickup    = queries.reportByPickupPoint.all()
+      const totalOrders = byStatus.reduce((s, r) => s + r.count, 0)
+      const totalRevenue = byMonth.reduce((s, r) => s + r.revenue, 0)
+      return render(reply, 'admin/reports.html', req, {
+        active: 'reports', byStatus, byMonth, topProducts, byPickup,
+        totalOrders, totalRevenue,
+      })
+    })
+
+    fastify.get('/berichte/export.csv', async (req, reply) => {
+      const rows = queries.reportAllOrdersCSV.all()
+      const header = 'Bestellnummer,Datum,Name,E-Mail,Telefon,Stadt,PLZ,Status,Bezahlt,Abholpunkt,Gesamt (€)'
+      const csv = [header, ...rows.map(r =>
+        [r.order_number, r.created_at, r.customer_name, r.customer_email,
+         r.customer_phone, r.customer_city, r.customer_zip, r.status,
+         r.bezahlt, r.abholpunkt, r.gesamt.toFixed(2)]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(',')
+      )].join('\r\n')
+      const date = new Date().toISOString().slice(0, 10)
+      reply.header('Content-Type', 'text/csv; charset=utf-8')
+      reply.header('Content-Disposition', `attachment; filename="haksut34-bestellungen-${date}.csv"`)
+      return reply.send('﻿' + csv) // BOM für Excel
     })
   })
 }

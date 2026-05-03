@@ -1,0 +1,176 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ t('admin_reports_title') }}{% endblock %}
+{% block topbar_title %}{{ t('admin_reports_title') }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+  <div>
+    <div class="page-title">{{ t('admin_reports_title') }}</div>
+    <div class="page-sub">Alle Daten exklusive stornierter Bestellungen</div>
+  </div>
+  <a href="/admin/berichte/export.csv" class="btn btn-primary">
+    ⬇ {{ t('admin_reports_export_csv') }}
+  </a>
+</div>
+
+{# ── KPI Cards ───────────────────────────────────────────────── #}
+<div class="grid-4" style="margin-bottom:2rem">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFF8E1">📦</div>
+    <div>
+      <div class="stat-value">{{ totalOrders }}</div>
+      <div class="stat-label">{{ t('admin_reports_total_orders') }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#E8F5E9">💶</div>
+    <div>
+      <div class="stat-value">{{ totalRevenue | eur }}</div>
+      <div class="stat-label">{{ t('admin_reports_total_revenue') }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#E3F2FD">📍</div>
+    <div>
+      <div class="stat-value">{{ byPickup | length }}</div>
+      <div class="stat-label">Aktive Abholpunkte</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#FFF3E0">🏆</div>
+    <div>
+      <div class="stat-value">{{ topProducts[0].product_name | truncate(14) if topProducts | length else '–' }}</div>
+      <div class="stat-label">Meistbestelltes Produkt</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:2rem">
+
+  {# ── Bestellungen nach Status ──────────────────────────────── #}
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:0.95rem">
+      {{ t('admin_reports_orders_by_status') }}
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th style="text-align:right">Anzahl</th>
+          <th style="text-align:right">Anteil</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in byStatus %}
+        <tr>
+          <td><span class="badge badge-{{ row.status }}">{{ t('status_' ~ row.status) }}</span></td>
+          <td style="text-align:right;font-weight:700">{{ row.count }}</td>
+          <td style="text-align:right;color:var(--text-muted)">
+            {% if totalOrders > 0 %}{{ ((row.count / totalOrders) * 100) | round(1) }}%{% else %}–{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted)">Keine Daten</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── Bestellungen nach Abholpunkt ─────────────────────────── #}
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:0.95rem">
+      {{ t('admin_reports_by_pickup') }}
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Abholpunkt</th>
+          <th style="text-align:right">Bestellungen</th>
+          <th style="text-align:right">Umsatz</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in byPickup %}
+        <tr>
+          <td style="font-weight:600">{{ row.pickup_point }}</td>
+          <td style="text-align:right;font-weight:700">{{ row.order_count }}</td>
+          <td style="text-align:right;color:var(--success);font-weight:700">{{ row.revenue | eur }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted)">Keine Daten</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Umsatz pro Monat ─────────────────────────────────────────── #}
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:2rem">
+  <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:0.95rem">
+    {{ t('admin_reports_revenue_by_month') }} <span style="font-weight:400;color:var(--text-muted);font-size:0.82rem">(letzte 12 Monate, ohne Stornierungen)</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Monat</th>
+          <th style="text-align:right">Bestellungen</th>
+          <th style="text-align:right">Umsatz</th>
+          <th style="min-width:200px">Balken</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set maxRevenue = 0 %}
+        {% for row in byMonth %}{% if row.revenue > maxRevenue %}{% set maxRevenue = row.revenue %}{% endif %}{% endfor %}
+        {% for row in byMonth %}
+        <tr>
+          <td style="font-weight:700;font-family:monospace">{{ row.month }}</td>
+          <td style="text-align:right">{{ row.order_count }}</td>
+          <td style="text-align:right;font-weight:800;color:var(--success)">{{ row.revenue | eur }}</td>
+          <td>
+            <div style="background:var(--cream-mid);border-radius:4px;height:10px;overflow:hidden">
+              <div style="background:var(--gold);height:100%;border-radius:4px;width:{% if maxRevenue > 0 %}{{ ((row.revenue / maxRevenue) * 100) | round(1) }}%{% else %}0%{% endif %}"></div>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted)">Noch keine Bestellungen</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ── Top-Produkte ─────────────────────────────────────────────── #}
+<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:0.95rem">
+    {{ t('admin_reports_top_products') }} <span style="font-weight:400;color:var(--text-muted);font-size:0.82rem">(Top 10 nach Menge)</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Produkt</th>
+          <th style="text-align:right">Menge</th>
+          <th style="text-align:right">Umsatz</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in topProducts %}
+        <tr>
+          <td style="color:var(--text-muted);font-weight:700">{{ loop.index }}</td>
+          <td style="font-weight:600">{{ row.product_name }}</td>
+          <td style="text-align:right;font-weight:700">{{ row.total_qty }}</td>
+          <td style="text-align:right;color:var(--success);font-weight:700">{{ row.total_revenue | eur }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted)">Noch keine Bestellungen</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

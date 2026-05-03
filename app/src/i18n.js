@@ -5,7 +5,7 @@ import nunjucks from 'nunjucks'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const LOCALES_DIR = path.join(__dirname, '..', 'locales')
-const VALID_LANGS = ['de', 'tr', 'en']
+const VALID_LANGS = ['de', 'tr', 'ar']
 
 const locales = {}
 for (const lang of VALID_LANGS) {

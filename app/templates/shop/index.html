@@ -2,6 +2,21 @@
 
 {% block title %}{{ t('site_title') }}{% endblock %}
 
+{% block hero %}
+<div class="shop-banner">
+  <img src="/static/img/banner.jpg" alt="Haksüt34 Banner"
+    onerror="this.style.display='none';document.getElementById('banner-placeholder').style.display='flex'">
+  <div id="banner-placeholder" class="shop-banner-placeholder" style="display:none">
+    <div class="shop-banner-inner">
+      <div class="shop-banner-logo">🥛</div>
+      <h2 class="shop-banner-title">Haksüt34</h2>
+      <p class="shop-banner-sub">{{ t('tagline_sub') }}</p>
+      <div class="shop-banner-badge">{{ t('info_banner') }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
 
 {# ── Add-to-order mode banner ─────────────────────────────────── #}

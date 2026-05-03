@@ -240,5 +240,15 @@
   "btn_order": "BESTELLEN",
   "search_placeholder": "Produkt suchen…",
   "footer_address": "Frische Büffelprodukte aus Deutschland",
-  "footer_service": "SERVICE"
+  "footer_service": "SERVICE",
+  "admin_reports_nav": "Berichte",
+  "admin_reports_title": "Statistiken & Berichte",
+  "admin_reports_export_csv": "CSV exportieren",
+  "admin_reports_orders_by_status": "Bestellungen nach Status",
+  "admin_reports_revenue_by_month": "Umsatz pro Monat",
+  "admin_reports_top_products": "Top-Produkte",
+  "admin_reports_by_pickup": "Bestellungen nach Abholpunkt",
+  "admin_reports_total_orders": "Bestellungen gesamt",
+  "admin_reports_total_revenue": "Gesamtumsatz",
+  "filter_pickup_point": "Abholpunkt"
 }

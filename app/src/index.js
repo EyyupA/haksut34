@@ -57,13 +57,13 @@ await app.register(staticFiles, {
 // ── i18n middleware ────────────────────────────────────────────────────────────
 app.addHook('preHandler', (req, reply, done) => {
   const lang = req.cookies.lang || 'tr'
-  req.lang = ['de', 'tr', 'en'].includes(lang) ? lang : 'tr'
+  req.lang = ['de', 'tr', 'ar'].includes(lang) ? lang : 'tr'
   done()
 })
 
 // ── Language switch ────────────────────────────────────────────────────────────
 app.get('/sprache/:lang', (req, reply) => {
-  const lang = ['de', 'tr', 'en'].includes(req.params.lang) ? req.params.lang : 'tr'
+  const lang = ['de', 'tr', 'ar'].includes(req.params.lang) ? req.params.lang : 'tr'
   reply.setCookie('lang', lang, { maxAge: 365 * 24 * 3600, path: '/', sameSite: 'lax' })
   // Nur auf denselben Ursprung weiterleiten – verhindert Open-Redirect-Angriffe über Referer
   const referer = req.headers.referer || ''

@@ -209,7 +209,6 @@
   "pickup_point_gps_denied": "GPS erişimi reddedildi. Lütfen noktayı manuel olarak seçin.",
   "customer_data_section": "İletişim Bilgileriniz",
   "customer_address_hint": "Adresiniz sipariş işlemi ve iletişim için gereklidir. Eve teslimat yapılmamaktadır.",
-  "cart_pickup_value": "Kendisi Alır",
   "admin_pickup_points_nav": "Teslim Noktaları",
   "admin_new_pickup_point": "Yeni Teslim Noktası",
   "admin_edit_pickup_point": "Teslim Noktasını Düzenle",
@@ -241,5 +240,15 @@
   "btn_order": "SİPARİŞ VER",
   "search_placeholder": "Ürün ara…",
   "footer_address": "Almanya'dan taze manda ürünleri",
-  "footer_service": "SERVİS"
+  "footer_service": "SERVİS",
+  "admin_reports_nav": "Raporlar",
+  "admin_reports_title": "İstatistikler & Raporlar",
+  "admin_reports_export_csv": "CSV İndir",
+  "admin_reports_orders_by_status": "Duruma Göre Siparişler",
+  "admin_reports_revenue_by_month": "Aylık Gelir",
+  "admin_reports_top_products": "En Çok Satılanlar",
+  "admin_reports_by_pickup": "Teslim Noktasına Göre Siparişler",
+  "admin_reports_total_orders": "Toplam Siparişler",
+  "admin_reports_total_revenue": "Toplam Gelir",
+  "filter_pickup_point": "Teslim Noktası"
 }

@@ -269,6 +269,46 @@ export const queries = {
   orderCities: db.prepare(
     "SELECT DISTINCT customer_city FROM orders ORDER BY customer_city"
   ),
+  orderPickupPoints: db.prepare(
+    "SELECT DISTINCT pickup_point_name FROM orders WHERE pickup_point_name IS NOT NULL ORDER BY pickup_point_name"
+  ),
+
+  // Reports
+  reportOrdersByStatus: db.prepare(
+    "SELECT status, COUNT(*) as count FROM orders GROUP BY status ORDER BY count DESC"
+  ),
+  reportRevenueByMonth: db.prepare(`
+    SELECT strftime('%Y-%m', o.created_at) as month,
+      COUNT(DISTINCT o.id) as order_count,
+      COALESCE(SUM(oi.subtotal), 0) as revenue
+    FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id
+    WHERE o.status != 'cancelled'
+    GROUP BY month ORDER BY month DESC LIMIT 12
+  `),
+  reportTopProducts: db.prepare(`
+    SELECT oi.product_name,
+      SUM(oi.quantity) as total_qty,
+      COALESCE(SUM(oi.subtotal), 0) as total_revenue
+    FROM order_items oi JOIN orders o ON o.id = oi.order_id
+    WHERE o.status != 'cancelled'
+    GROUP BY oi.product_name ORDER BY total_qty DESC LIMIT 10
+  `),
+  reportByPickupPoint: db.prepare(`
+    SELECT COALESCE(o.pickup_point_name, 'Nicht angegeben') as pickup_point,
+      COUNT(DISTINCT o.id) as order_count,
+      COALESCE(SUM(oi.subtotal), 0) as revenue
+    FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id
+    WHERE o.status != 'cancelled'
+    GROUP BY o.pickup_point_name ORDER BY order_count DESC
+  `),
+  reportAllOrdersCSV: db.prepare(`
+    SELECT o.order_number, o.created_at, o.customer_name, o.customer_email,
+      o.customer_phone, o.customer_city, o.customer_zip, o.status,
+      CASE WHEN o.is_paid=1 THEN 'Ja' ELSE 'Nein' END as bezahlt,
+      COALESCE(o.pickup_point_name,'') as abholpunkt,
+      COALESCE((SELECT SUM(subtotal) FROM order_items WHERE order_id=o.id),0) as gesamt
+    FROM orders o ORDER BY o.created_at DESC
+  `),
 };
 
 // ── Seed ─────────────────────────────────────────────────────────────────────

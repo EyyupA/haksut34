@@ -42,6 +42,17 @@
     <label class="form-label">{{ t('filter_date_to') }}</label>
     <input type="date" name="date_to" class="form-input" value="{{ filter_date_to }}">
   </div>
+  {% if pickup_points | length > 0 %}
+  <div class="form-group">
+    <label class="form-label">{{ t('filter_pickup_point') }}</label>
+    <select name="pickup_point" class="form-input auto-submit">
+      <option value="">{{ t('filter_all') }}</option>
+      {% for pp in pickup_points %}
+      <option value="{{ pp }}" {% if filter_pickup == pp %}selected{% endif %}>{{ pp }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
   <div class="form-group" style="min-width:180px">
     <label class="form-label">{{ t('filter_search_btn') }}</label>
     <input type="text" name="q" class="form-input" placeholder="{{ t('filter_search_placeholder') }}" value="{{ filter_q }}">

@@ -35,6 +35,9 @@
     <a href="/admin/abholpunkte" class="sidebar-link {% if active == 'pickup_points' %}active{% endif %}">
       📍 {{ t('admin_pickup_points_nav') }}
     </a>
+    <a href="/admin/berichte" class="sidebar-link {% if active == 'reports' %}active{% endif %}">
+      📈 {{ t('admin_reports_nav') }}
+    </a>
 
     <div style="border-top:1px solid #333;margin:1rem 0;padding-top:1rem">
       <a href="/" class="sidebar-link" target="_blank">🌐 {{ t('admin_view_shop') }}</a>
@@ -46,7 +49,7 @@
       <div style="display:flex;gap:4px;padding:0 0.5rem">
         <a href="/sprache/de" class="lang-btn {% if lang == 'de' %}active{% endif %}">DE</a>
         <a href="/sprache/tr" class="lang-btn {% if lang == 'tr' %}active{% endif %}">TR</a>
-        <a href="/sprache/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+        <a href="/sprache/ar" class="lang-btn {% if lang == 'ar' %}active{% endif %}">AR</a>
       </div>
     </div>
   </aside>
