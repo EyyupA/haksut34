@@ -251,5 +251,6 @@
   "admin_reports_total_orders": "Bestellungen gesamt",
   "admin_reports_total_revenue": "Gesamtumsatz",
   "filter_pickup_point": "Abholpunkt",
-  "admin_unlock_btn": "Entsperren"
+  "admin_unlock_btn": "Entsperren",
+  "admin_view_btn": "Anzeigen"
 }

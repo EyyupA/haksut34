@@ -251,5 +251,6 @@
   "admin_reports_total_orders": "Toplam Siparişler",
   "admin_reports_total_revenue": "Toplam Gelir",
   "filter_pickup_point": "Teslim Noktası",
-  "admin_unlock_btn": "Kilidi Aç"
+  "admin_unlock_btn": "Kilidi Aç",
+  "admin_view_btn": "Görüntüle"
 }
