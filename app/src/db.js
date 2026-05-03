@@ -92,6 +92,9 @@ function initDb() {
   // Migrations: new columns added to existing tables
   try { db.exec(`ALTER TABLE orders ADD COLUMN pickup_point_id INTEGER`) } catch {}
   try { db.exec(`ALTER TABLE orders ADD COLUMN pickup_point_name TEXT`) } catch {}
+  try { db.exec(`ALTER TABLE products ADD COLUMN name_ar TEXT DEFAULT ''`) } catch {}
+  try { db.exec(`ALTER TABLE products ADD COLUMN description_ar TEXT DEFAULT ''`) } catch {}
+  try { db.exec(`ALTER TABLE categories ADD COLUMN name_ar TEXT DEFAULT ''`) } catch {}
 }
 
 initDb(); // Tabellen anlegen bevor queries prepared werden
@@ -125,12 +128,12 @@ export const queries = {
     "SELECT DISTINCT category FROM products ORDER BY category"
   ),
   insertProduct: db.prepare(`
-    INSERT INTO products (name_de,name_tr,name_en,description_de,description_tr,description_en,price,unit,category,image_url,is_active,stock)
-    VALUES (@name_de,@name_tr,@name_en,@description_de,@description_tr,@description_en,@price,@unit,@category,@image_url,@is_active,@stock)
+    INSERT INTO products (name_de,name_tr,name_en,name_ar,description_de,description_tr,description_en,description_ar,price,unit,category,image_url,is_active,stock)
+    VALUES (@name_de,@name_tr,@name_en,@name_ar,@description_de,@description_tr,@description_en,@description_ar,@price,@unit,@category,@image_url,@is_active,@stock)
   `),
   updateProduct: db.prepare(`
-    UPDATE products SET name_de=@name_de,name_tr=@name_tr,name_en=@name_en,
-      description_de=@description_de,description_tr=@description_tr,description_en=@description_en,
+    UPDATE products SET name_de=@name_de,name_tr=@name_tr,name_en=@name_en,name_ar=@name_ar,
+      description_de=@description_de,description_tr=@description_tr,description_en=@description_en,description_ar=@description_ar,
       price=@price,unit=@unit,category=@category,image_url=@image_url,is_active=@is_active,stock=@stock,
       updated_at=datetime('now')
     WHERE id=@id
@@ -147,10 +150,10 @@ export const queries = {
   `),
   categoryById: db.prepare("SELECT * FROM categories WHERE id = ?"),
   insertCategory: db.prepare(
-    "INSERT INTO categories (slug,name_de,name_tr,name_en,sort_order) VALUES (@slug,@name_de,@name_tr,@name_en,@sort_order)"
+    "INSERT INTO categories (slug,name_de,name_tr,name_en,name_ar,sort_order) VALUES (@slug,@name_de,@name_tr,@name_en,@name_ar,@sort_order)"
   ),
   updateCategory: db.prepare(
-    "UPDATE categories SET name_de=@name_de,name_tr=@name_tr,name_en=@name_en,sort_order=@sort_order WHERE id=@id"
+    "UPDATE categories SET name_de=@name_de,name_tr=@name_tr,name_en=@name_en,name_ar=@name_ar,sort_order=@sort_order WHERE id=@id"
   ),
   deleteCategory: db.prepare("DELETE FROM categories WHERE id = ?"),
   categoryProductCount: db.prepare(
@@ -252,14 +255,14 @@ export const queries = {
       (SELECT COUNT(*) FROM order_items WHERE order_id=o.id) as _item_count
     FROM orders o ORDER BY o.created_at DESC LIMIT 10
   `),
-  filteredOrders: (where, params) => {
+  filteredOrders: (where, params, orderBy = 'o.created_at DESC') => {
     const sql = `
       SELECT o.*,
         COALESCE((SELECT SUM(subtotal) FROM order_items WHERE order_id=o.id),0) as _total,
         (SELECT COUNT(*) FROM order_items WHERE order_id=o.id) as _item_count
       FROM orders o
       ${where ? "WHERE " + where : ""}
-      ORDER BY o.created_at DESC
+      ORDER BY ${orderBy}
     `;
     return db
       .prepare(sql)
@@ -1013,6 +1016,60 @@ export function seedProducts() {
     },
   ]);
   console.log("✅ 39 Produkte geseedet");
+}
+
+export function seedArabicNames() {
+  const products = [
+    { name_de: 'Büffelmilch',                  name_ar: 'حليب الجاموس',            description_ar: 'حليب جاموس طازج من هولندا – كريمي بشكل استثنائي وغني بالمغذيات.' },
+    { name_de: 'Büffeljoghurt',                name_ar: 'زبادي الجاموس',           description_ar: 'زبادي الجاموس كثيف القشدة – طبيعي وخالٍ من المضافات.' },
+    { name_de: 'Büffelrahm (Kaymak)',          name_ar: 'قشدة الجاموس (قيمق)',     description_ar: 'قشدة جاموس ناعمة وكثيفة – تُقدَّم تقليدياً مع العسل والخبز الطازج.' },
+    { name_de: 'Frischer Büffelkäse',          name_ar: 'جبن جاموس طازج',          description_ar: 'جبن أبيض طري وطازج من حليب الجاموس – خفيف الطعم وعطري.' },
+    { name_de: 'Büffel-Lor-Käse',             name_ar: 'جبن لور الجاموس',          description_ar: 'جبن لور طازج من حليب الجاموس – خفيف وكريمي، مثالي لوجبة الفطور.' },
+    { name_de: 'Ziegenmilch',                  name_ar: 'حليب الماعز',              description_ar: 'حليب ماعز طازج من هولندا – سهل الهضم وغني بالمغذيات.' },
+    { name_de: 'Ziegenjoghurt',                name_ar: 'زبادي الماعز',             description_ar: 'زبادي طبيعي من حليب الماعز – خفيف وسهل الهضم.' },
+    { name_de: 'Ziegen-Kaşar-Käse',           name_ar: 'جبن كاشار الماعز',         description_ar: 'جبن كاشار نصف صلب من حليب الماعز – حار الطعم وينذاب بسهولة.' },
+    { name_de: 'Weißer Ziegenkäse',            name_ar: 'جبن أبيض من الماعز',       description_ar: 'جبن أبيض كلاسيكي من حليب الماعز – خفيف المذاق المالح وكريمي.' },
+    { name_de: 'Frischer Ziegenkäse',          name_ar: 'جبن ماعز طازج',            description_ar: 'جبن ماعز طازج صغير – ناعم ومتعدد الاستخدامات.' },
+    { name_de: 'Schwarzmeer-Butter (Karadeniz)', name_ar: 'زبدة البحر الأسود',    description_ar: 'زبدة تقليدية مميزة من منطقة البحر الأسود – غنية النكهة بشكل استثنائي.' },
+    { name_de: 'Yörük-Dorfkäse (frisch)',      name_ar: 'جبن قرية يوروك (طازج)',    description_ar: 'جبن أبيض طازج على طريقة الرحّالة – مصنوع يدوياً من حليب خام.' },
+    { name_de: 'Kräuter-Dorfkäse (Otlu)',      name_ar: 'جبن القرية بالأعشاب',      description_ar: 'جبن قرية طازج بالأعشاب الجبلية العطرية – نموذجي لشرق الأناضول.' },
+    { name_de: 'Kuymak-Käse (Schmelzkäse)',    name_ar: 'جبن كويماك (جبن ذائب)',    description_ar: 'جبن طري مثالي للإذابة – مثالي لطبق الكويماك التقليدي.' },
+    { name_de: 'Fadenkäse mit Çökelek',        name_ar: 'جبن الخيوط مع جوكيليك',   description_ar: 'جبن خيوط ممتد محشو بجوكيليك – مصنوع بطريقة حرفية يدوية.' },
+    { name_de: 'Örgü-Käse (geflochten)',       name_ar: 'جبن مضفور',                description_ar: 'جبن مضفور على الطريقة التركية التقليدية – ناعم وليفي.' },
+    { name_de: 'Dil-Käse (Zungenkäse)',        name_ar: 'جبن الدل (جبن اللسان)',    description_ar: 'جبن خفيف وليفي وطري – مثالي كوجبة خفيفة أو لوجبة الفطور.' },
+    { name_de: 'Bidon-Tulum-Käse',            name_ar: 'جبن تولوم في بيدون',        description_ar: 'جبن تولوم مُعتَّق في وعاء معدني – قوي الطعم وعطري ومميز.' },
+    { name_de: 'Cecil-Fadenkäse 800g',         name_ar: 'جبن سيسيل خيوط 800 غرام', description_ar: 'جبن سيسيل أرمني-تركي – ليفي وخفيف وعطري.' },
+    { name_de: 'Cecil-Fadenkäse 400g',         name_ar: 'جبن سيسيل خيوط 400 غرام', description_ar: 'جبن سيسيل أرمني-تركي – ليفي وخفيف وعطري.' },
+    { name_de: 'Butter',                       name_ar: 'زبدة',                     description_ar: 'زبدة طبيعية – كريمية وغنية المذاق.' },
+    { name_de: 'Ezine-Käse',                   name_ar: 'جبن أزين',                  description_ar: 'جبن أبيض أسطوري من أزين – محمي بمؤشر جغرافي، غني المذاق ومالح.' },
+    { name_de: 'Korbkäse (Sepet)',             name_ar: 'جبن السلة (سيبت)',          description_ar: 'جبن أبيض مُعتَّق في سلة صفصاف – بنية سلة دقيقة، عطري ومالح.' },
+    { name_de: 'Gereifter Kars-Kaşar',        name_ar: 'كاشار كارس المُعتَّق',       description_ar: 'جبن كاشار مُعتَّق تقليدياً من كارس – مكثف ومذاق جوزي لا يُضاهى.' },
+    { name_de: 'Van-Kräuterkäse (Otlu)',       name_ar: 'جبن أعشاب فان',             description_ar: 'جبن أبيض من فان بأعشاب برية عطرية – ربيعي الطعم وحار.' },
+    { name_de: 'Erzincan-Tulum-Käse',         name_ar: 'جبن تولوم أرزينجان',         description_ar: 'جبن تولوم مُعتَّق من أرزينجان – قوي العطر وهش قليلاً.' },
+    { name_de: 'Schwarzkümmel-Tulum-Käse',    name_ar: 'جبن تولوم بالحبة السوداء',   description_ar: 'جبن تولوم بالحبة السوداء – عطري ومميز الطعم.' },
+    { name_de: 'Wasserbörek rund',             name_ar: 'بورك الماء (دائري)',         description_ar: 'بورك الماء محلي الصنع بشكل دائري – مقرمش من الخارج وطري من الداخل.' },
+    { name_de: 'Wasserbörek eckig',            name_ar: 'بورك الماء (مستطيل)',        description_ar: 'بورك الماء محلي الصنع بشكل مستطيل – كلاسيكي وطري.' },
+    { name_de: 'Olivenöl (Nativ Extra)',       name_ar: 'زيت زيتون بكر ممتاز',       description_ar: 'زيت زيتون بكر ممتاز معصور بالبرد – ذهبي مخضر وعطري.' },
+    { name_de: 'Schwarze Oliven (Gemlik)',     name_ar: 'زيتون أسود (جمليك)',         description_ar: 'زيتون أسود مُعتَّق طبيعياً من جمليك – خفيف الطعم ولحمي.' },
+    { name_de: 'Grüne Oliven (Çizik)',         name_ar: 'زيتون أخضر (شيزيك)',        description_ar: 'زيتون أخضر مشقوق بالثوم والأعشاب – حار ومقرمش.' },
+    { name_de: 'Rohhonig (Naturhonig)',        name_ar: 'عسل خام طبيعي',             description_ar: 'عسل بري غير معالج من جبال الأناضول – خام وطبيعي وعطري.' },
+    { name_de: 'Wabenhonig',                   name_ar: 'عسل الشمع',                 description_ar: 'عسل مباشرة في قرص الشهد الطبيعي – نقي وطبيعي ومركّز.' },
+    { name_de: 'Wabenhonig hell (Açık Çıta)',  name_ar: 'عسل الشمع الفاتح',          description_ar: 'عسل شمع فاتح اللون من سيواس – زهري الرائحة ولطيف الطعم.' },
+    { name_de: 'Kastanienhonig',               name_ar: 'عسل الكستناء',              description_ar: 'عسل الكستناء الداكن والقوي – ذو طابع مميز مع لمسة خفيفة من المرارة.' },
+  ]
+
+  const upd = db.prepare("UPDATE products SET name_ar=?, description_ar=? WHERE name_de=? AND (name_ar='' OR name_ar IS NULL)")
+  db.transaction(() => { for (const p of products) upd.run(p.name_ar, p.description_ar, p.name_de) })()
+
+  const categories = [
+    { slug: 'Milchprodukte',        name_ar: 'منتجات الألبان' },
+    { slug: 'Türkische Käsesorten', name_ar: 'أجبان تركية' },
+    { slug: 'Backwaren',            name_ar: 'مخبوزات' },
+    { slug: 'Oliven & Öl',          name_ar: 'زيتون وزيت' },
+    { slug: 'Honig',                name_ar: 'عسل' },
+  ]
+  const updCat = db.prepare("UPDATE categories SET name_ar=? WHERE slug=? AND (name_ar='' OR name_ar IS NULL)")
+  db.transaction(() => { for (const c of categories) updCat.run(c.name_ar, c.slug) })()
 }
 
 export function seedCategories() {

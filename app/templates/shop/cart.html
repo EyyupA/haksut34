@@ -327,7 +327,7 @@ function selectPickupPoint(id, name, lat, lng) {
       );
     });
     if (_markers[id]) {
-      _map.setView([lat, lng], Math.max(_map.getZoom(), 13), { animate: true });
+      _map.flyTo([lat, lng], 15, { duration: 0.8 });
       _markers[id].openPopup();
     }
   }

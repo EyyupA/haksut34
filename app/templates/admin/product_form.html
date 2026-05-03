@@ -29,8 +29,8 @@
           <input type="text" name="name_tr" class="form-input" required value="{{ product.name_tr if product else '' }}">
         </div>
         <div class="form-group">
-          <label class="form-label">🇬🇧 English <span class="required">*</span></label>
-          <input type="text" name="name_en" class="form-input" required value="{{ product.name_en if product else '' }}">
+          <label class="form-label">🇸🇦 العربية</label>
+          <input type="text" name="name_ar" class="form-input" value="{{ product.name_ar if product else '' }}" dir="rtl">
         </div>
       </div>
     </div>
@@ -46,8 +46,8 @@
         <textarea name="description_tr" class="form-input">{{ product.description_tr if product else '' }}</textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">🇬🇧 English</label>
-        <textarea name="description_en" class="form-input">{{ product.description_en if product else '' }}</textarea>
+        <label class="form-label">🇸🇦 العربية</label>
+        <textarea name="description_ar" class="form-input" dir="rtl">{{ product.description_ar if product else '' }}</textarea>
       </div>
     </div>
 

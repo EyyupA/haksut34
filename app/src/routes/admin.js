@@ -69,7 +69,7 @@ export default async function adminRoutes(fastify) {
 
     // ── Orders ─────────────────────────────────────────────────────────────────
     fastify.get('/bestellungen', async (req, reply) => {
-      const { status, city, paid, date_from, date_to, q, pickup_point } = req.query
+      const { status, city, paid, date_from, date_to, q, pickup_point, sort, dir } = req.query
       const conditions = []
       const params = []
 
@@ -82,7 +82,17 @@ export default async function adminRoutes(fastify) {
       if (q) { conditions.push('(o.order_number LIKE ? OR o.customer_name LIKE ?)'); params.push(`%${q}%`, `%${q}%`) }
       if (pickup_point) { conditions.push('o.pickup_point_name = ?'); params.push(pickup_point) }
 
-      const orders = queries.filteredOrders(conditions.join(' AND '), params)
+      const SORT_COLS = {
+        order_number: 'o.order_number', created_at: 'o.created_at',
+        customer_name: 'o.customer_name', pickup_point_name: 'o.pickup_point_name',
+        _item_count: '_item_count', _total: '_total',
+        status: 'o.status', is_paid: 'o.is_paid',
+      }
+      const sortCol = SORT_COLS[sort] || 'o.created_at'
+      const sortDir = dir === 'asc' ? 'ASC' : 'DESC'
+      const orderBy = `${sortCol} ${sortDir}`
+
+      const orders = queries.filteredOrders(conditions.join(' AND '), params, orderBy)
       const cities = queries.orderCities.all().map(r => r.customer_city)
       const pickup_points = queries.orderPickupPoints.all().map(r => r.pickup_point_name)
 
@@ -92,6 +102,7 @@ export default async function adminRoutes(fastify) {
         filter_paid: paid || '', filter_q: q || '',
         filter_date_from: date_from || '', filter_date_to: date_to || '',
         filter_pickup: pickup_point || '',
+        sort: sort || 'created_at', dir: sortDir.toLowerCase(),
       })
     })
 
@@ -198,7 +209,8 @@ export default async function adminRoutes(fastify) {
           active: 'categories', category: req.body, error: 'Slug und Deutscher Name sind Pflichtfelder.',
         })
       }
-      queries.insertCategory.run({ slug, name_de, name_tr: name_tr || '', name_en: name_en || '', sort_order: parseInt(sort_order) || 0 })
+      const { name_ar } = req.body
+      queries.insertCategory.run({ slug, name_de, name_tr: name_tr || '', name_en: name_en || '', name_ar: name_ar || '', sort_order: parseInt(sort_order) || 0 })
       return reply.redirect('/admin/kategorien')
     })
 
@@ -210,8 +222,8 @@ export default async function adminRoutes(fastify) {
 
     fastify.post('/kategorien/:id/edit', async (req, reply) => {
       const id = parseInt(req.params.id)
-      const { name_de, name_tr, name_en, sort_order } = req.body
-      queries.updateCategory.run({ id, name_de, name_tr: name_tr || '', name_en: name_en || '', sort_order: parseInt(sort_order) || 0 })
+      const { name_de, name_tr, name_en, name_ar, sort_order } = req.body
+      queries.updateCategory.run({ id, name_de, name_tr: name_tr || '', name_en: name_en || '', name_ar: name_ar || '', sort_order: parseInt(sort_order) || 0 })
       return reply.redirect('/admin/kategorien')
     })
 
@@ -335,9 +347,11 @@ async function parseProductForm(req) {
       name_de: fields.name_de || '',
       name_tr: fields.name_tr || '',
       name_en: fields.name_en || '',
+      name_ar: fields.name_ar || '',
       description_de: fields.description_de || '',
       description_tr: fields.description_tr || '',
       description_en: fields.description_en || '',
+      description_ar: fields.description_ar || '',
       price: parseFloat(fields.price) || 0,
       unit: fields.unit || '',
       category: fields.category || 'Sonstiges',

@@ -41,16 +41,12 @@
 </div>
 
 {# ── Search + Tabs ─────────────────────────────────────────────── #}
-<div class="search-tabs-row">
+<div style="margin-bottom:1.25rem">
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
     <input type="text" id="product-search" class="search-input"
       placeholder="{{ t('search_placeholder') }}"
       oninput="searchProducts(this.value)">
-  </div>
-  <div class="tab-nav">
-    <a href="/" class="tab-btn active">{{ t('nav_shop') }}</a>
-    <a href="/bestellung/suchen" class="tab-btn">{{ t('nav_order_lookup') }}</a>
   </div>
 </div>
 
@@ -94,6 +90,7 @@
       <div class="product-info">
         <div class="product-name">
           {% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}
+          {% elif lang == 'ar' and product.name_ar %}{{ product.name_ar }}
           {% elif lang == 'en' and product.name_en %}{{ product.name_en }}
           {% else %}{{ product.name_de }}{% endif %}
         </div>
@@ -123,7 +120,7 @@
               data-id="{{ product.id }}"
               data-price="{{ product.price }}"
               data-unit="{{ product.unit }}"
-              data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'en' and product.name_en %}{{ product.name_en }}{% else %}{{ product.name_de }}{% endif %}"
+              data-name="{% if lang == 'tr' and product.name_tr %}{{ product.name_tr }}{% elif lang == 'ar' and product.name_ar %}{{ product.name_ar }}{% elif lang == 'en' and product.name_en %}{{ product.name_en }}{% else %}{{ product.name_de }}{% endif %}"
               onclick="orderProduct(this)">
               {{ t('btn_order') }}
             </button>
