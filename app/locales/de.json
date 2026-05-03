@@ -252,5 +252,6 @@
   "admin_reports_total_revenue": "Gesamtumsatz",
   "filter_pickup_point": "Abholpunkt",
   "admin_unlock_btn": "Entsperren",
-  "admin_view_btn": "Anzeigen"
+  "admin_view_btn": "Anzeigen",
+  "admin_unconfirm_confirm": "Bestätigung wirklich zurücknehmen? Der Kunde kann die Bestellung dann wieder bearbeiten."
 }

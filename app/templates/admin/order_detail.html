@@ -28,7 +28,8 @@
     {% endif %}
 
     {% if order.status == 'confirmed' %}
-    <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbestaetigt">
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbestaetigt"
+      onsubmit="return confirm('{{ t('admin_unconfirm_confirm') }}')">
       <button class="btn btn-outline btn-sm">↩️ {{ t('admin_unconfirm_btn') }}</button>
     </form>
     {% endif %}

@@ -252,5 +252,6 @@
   "admin_reports_total_revenue": "Toplam Gelir",
   "filter_pickup_point": "Teslim Noktası",
   "admin_unlock_btn": "Kilidi Aç",
-  "admin_view_btn": "Görüntüle"
+  "admin_view_btn": "Görüntüle",
+  "admin_unconfirm_confirm": "Onayı gerçekten geri almak istiyor musunuz? Müşteri siparişi tekrar düzenleyebilecek."
 }

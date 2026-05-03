@@ -252,5 +252,6 @@
   "admin_reports_total_revenue": "إجمالي الإيرادات",
   "filter_pickup_point": "نقطة الاستلام",
   "admin_unlock_btn": "إلغاء القفل",
-  "admin_view_btn": "عرض"
+  "admin_view_btn": "عرض",
+  "admin_unconfirm_confirm": "هل تريد فعلاً سحب التأكيد؟ سيتمكن العميل من تعديل الطلب مجدداً."
 }
