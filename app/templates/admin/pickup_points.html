@@ -1,0 +1,66 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ t('admin_pickup_points_nav') }}{% endblock %}
+{% block topbar_title %}{{ t('admin_pickup_points_nav') }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+  <h1 style="font-size:1.3rem;font-weight:900;margin:0">📍 {{ t('admin_pickup_points_nav') }}</h1>
+  <a href="/admin/abholpunkte/neu" class="btn btn-primary btn-sm">+ {{ t('admin_new_pickup_point') }}</a>
+</div>
+
+{% if points | length == 0 %}
+<div class="card text-center" style="padding:3rem">
+  <div style="font-size:3rem;margin-bottom:1rem">📍</div>
+  <p style="color:var(--text-muted)">{{ t('admin_no_pickup_points') }}</p>
+  <a href="/admin/abholpunkte/neu" class="btn btn-primary btn-sm" style="margin-top:1rem">{{ t('admin_create_now') }}</a>
+</div>
+{% else %}
+<div class="card" style="padding:0;overflow:hidden">
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>{{ t('admin_pickup_point_name') }}</th>
+        <th>{{ t('admin_pickup_point_address') }}</th>
+        <th style="text-align:center">Lat / Lng</th>
+        <th style="text-align:center">{{ t('col_sort') }}</th>
+        <th style="text-align:center">{{ t('col_active') }}</th>
+        <th style="text-align:right">{{ t('col_actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for point in points %}
+      <tr>
+        <td style="font-weight:700">{{ point.name }}</td>
+        <td style="color:var(--text-muted);font-size:0.88rem">{{ point.address }}</td>
+        <td style="text-align:center;font-family:monospace;font-size:0.8rem;color:var(--text-muted)">
+          {{ point.lat }}, {{ point.lng }}
+        </td>
+        <td style="text-align:center">{{ point.sort_order }}</td>
+        <td style="text-align:center">
+          {% if point.is_active %}
+          <span class="badge badge-delivered">{{ t('admin_product_active') }}</span>
+          {% else %}
+          <span class="badge badge-cancelled">{{ t('admin_product_inactive') }}</span>
+          {% endif %}
+        </td>
+        <td style="text-align:right">
+          <a href="/admin/abholpunkte/{{ point.id }}/edit" class="btn btn-outline btn-sm">{{ t('admin_edit_btn') }}</a>
+          <form method="post" action="/admin/abholpunkte/{{ point.id }}/loeschen" style="display:inline"
+            onsubmit="return confirm('Abholpunkt wirklich löschen?')">
+            <button class="btn btn-danger btn-sm">{{ t('admin_delete_btn') }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="notice notice-info" style="margin-top:1.5rem;font-size:0.85rem">
+  💡 Tipp: Koordinaten (Lat/Lng) können Sie über
+  <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap.org</a>
+  ermitteln – Rechtsklick → „Adresse anzeigen", dann die Koordinaten aus der URL kopieren.
+</div>
+{% endblock %}

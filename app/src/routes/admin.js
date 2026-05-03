@@ -219,6 +219,59 @@ export default async function adminRoutes(fastify) {
       queries.deleteCategory.run(id)
       return reply.redirect('/admin/kategorien')
     })
+
+    // ── Pickup Points ──────────────────────────────────────────────────────────
+    fastify.get('/abholpunkte', async (req, reply) => {
+      return render(reply, 'admin/pickup_points.html', req, {
+        active: 'pickup_points',
+        points: queries.allPickupPoints.all(),
+      })
+    })
+
+    fastify.get('/abholpunkte/neu', async (req, reply) => {
+      return render(reply, 'admin/pickup_point_form.html', req, {
+        active: 'pickup_points', point: null, error: null,
+      })
+    })
+
+    fastify.post('/abholpunkte/neu', async (req, reply) => {
+      const { name, address, lat, lng, sort_order, is_active } = req.body
+      if (!name || !address || !lat || !lng) {
+        return render(reply, 'admin/pickup_point_form.html', req, {
+          active: 'pickup_points', point: req.body, error: 'Name, Adresse, Lat und Lng sind Pflichtfelder.',
+        })
+      }
+      queries.insertPickupPoint.run({
+        name, address,
+        lat: parseFloat(lat), lng: parseFloat(lng),
+        is_active: is_active === 'true' ? 1 : 0,
+        sort_order: parseInt(sort_order) || 0,
+      })
+      return reply.redirect('/admin/abholpunkte')
+    })
+
+    fastify.get('/abholpunkte/:id/edit', async (req, reply) => {
+      const point = queries.pickupPointById.get(parseInt(req.params.id))
+      if (!point) return reply.status(404).send('Nicht gefunden')
+      return render(reply, 'admin/pickup_point_form.html', req, { active: 'pickup_points', point, error: null })
+    })
+
+    fastify.post('/abholpunkte/:id/edit', async (req, reply) => {
+      const id = parseInt(req.params.id)
+      const { name, address, lat, lng, sort_order, is_active } = req.body
+      queries.updatePickupPoint.run({
+        id, name, address,
+        lat: parseFloat(lat), lng: parseFloat(lng),
+        is_active: is_active === 'true' ? 1 : 0,
+        sort_order: parseInt(sort_order) || 0,
+      })
+      return reply.redirect('/admin/abholpunkte')
+    })
+
+    fastify.post('/abholpunkte/:id/loeschen', async (req, reply) => {
+      queries.deletePickupPoint.run(parseInt(req.params.id))
+      return reply.redirect('/admin/abholpunkte')
+    })
   })
 }
 

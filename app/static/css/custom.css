@@ -612,3 +612,56 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 .filter-bar .form-group { margin-bottom: 0; min-width: 140px; }
 .filter-bar .form-input { padding: 0.5rem 0.75rem; font-size: 0.88rem; }
 .filter-bar .form-label { font-size: 0.8rem; }
+
+/* ── Pickup point selector ───────────────────────────── */
+.pickup-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.pickup-card:hover {
+  border-color: var(--primary);
+  background: #FFF8F3;
+}
+.pickup-card.selected {
+  border-color: var(--primary);
+  background: #FFF4EC;
+  box-shadow: 0 0 0 3px rgba(232,119,34,0.15);
+}
+.pickup-card-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.pickup-card-distance {
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+.pickup-card-address {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+}
+.notice-success {
+  background: #E8F5E9;
+  border-left: 4px solid #388E3C;
+  color: #1b5e20;
+  padding: 0.8rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.88rem;
+}
+.notice-error {
+  background: #FFEBEE;
+  border-left: 4px solid #C62828;
+  color: #b71c1c;
+  padding: 0.8rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.88rem;
+}
+/* Ensure Leaflet map z-index stays below modal/cookie */
+.leaflet-container { z-index: 1; }

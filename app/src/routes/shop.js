@@ -41,7 +41,8 @@ export default async function shopRoutes(fastify) {
 
   // GET /warenkorb
   fastify.get('/warenkorb', async (req, reply) => {
-    return render(reply, 'shop/cart.html', req, {})
+    const pickupPoints = queries.allActivePickupPoints.all()
+    return render(reply, 'shop/cart.html', req, { pickupPoints })
   })
 
   // POST /bestellung/aufgeben
@@ -63,6 +64,13 @@ export default async function shopRoutes(fastify) {
     const orderNumber = generateOrderNumber()
     const editToken = generateEditToken()
 
+    const pickupPointId = parseInt(body.pickup_point_id) || null
+    let pickupPointName = body.pickup_point_name || null
+    if (pickupPointId && !pickupPointName) {
+      const pp = queries.pickupPointById.get(pickupPointId)
+      if (pp) pickupPointName = pp.name
+    }
+
     const place = db.transaction(() => {
       const info = queries.insertOrder.run({
         order_number: orderNumber,
@@ -76,6 +84,8 @@ export default async function shopRoutes(fastify) {
         customer_country: body.customer_country || 'Deutschland',
         customer_note: body.customer_note || null,
         language: body.language || 'tr',
+        pickup_point_id: pickupPointId,
+        pickup_point_name: pickupPointName,
       })
       const orderId = info.lastInsertRowid
 

@@ -2,6 +2,12 @@
 
 {% block title %}{{ t('cart_title') }} – Haksüt34{% endblock %}
 
+{% block head %}
+{% if pickupPoints | length > 0 %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div style="max-width:900px;margin:0 auto">
 
@@ -17,8 +23,10 @@
 
     <div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start" class="cart-layout">
 
-      <!-- Left: Cart items + Form -->
+      <!-- Left column -->
       <div>
+
+        <!-- Cart items -->
         <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem">
           <div style="padding:1.2rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;font-size:1rem">
             🛍️ {{ t('cart_your_items') }}
@@ -42,12 +50,71 @@
           </div>
         </div>
 
-        <!-- Order Form -->
+        <!-- Pickup Point Selector -->
+        {% if pickupPoints | length > 0 %}
+        <div class="card" style="margin-bottom:1.5rem">
+          <h2 class="card-title">📍 {{ t('pickup_point_section') }}</h2>
+          <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem">
+            {{ t('pickup_point_select_hint') }}
+          </p>
+
+          <!-- GPS auto-notice -->
+          <div id="gps-auto-notice" style="display:none;align-items:center;gap:0.5rem;background:#E8F5E9;border:1px solid #4CAF50;border-radius:var(--radius-sm);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.88rem;color:#1b5e20">
+            <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+            <span>
+              {% if lang == 'tr' %}En yakın nokta seçildi:{% elif lang == 'en' %}Nearest point selected:{% else %}Nächster Standort ausgewählt:{% endif %}
+              <strong id="gps-auto-name"></strong>
+            </span>
+          </div>
+
+          <!-- Leaflet Map -->
+          <div id="pickup-map" style="height:320px;border-radius:var(--radius-sm);overflow:hidden;margin-bottom:1rem;border:1px solid var(--border);z-index:0;position:relative"></div>
+
+          <!-- GPS button -->
+          <button type="button" id="gps-btn" onclick="triggerGPS()" class="btn btn-outline btn-sm" style="margin-bottom:1rem">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20" style="vertical-align:-2px;margin-right:5px" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+            {{ t('pickup_point_gps_btn') }}
+          </button>
+
+          <!-- Pickup point list -->
+          <div id="pickup-list" style="display:grid;gap:0.6rem">
+            {% for point in pickupPoints %}
+            <div class="pickup-card"
+                 data-id="{{ point.id }}"
+                 data-lat="{{ point.lat }}"
+                 data-lng="{{ point.lng }}"
+                 data-name="{{ point.name | escape }}"
+                 onclick="selectPickupPoint({{ point.id }}, this.dataset.name, parseFloat(this.dataset.lat), parseFloat(this.dataset.lng))">
+              <div class="pickup-card-name">{{ point.name }}</div>
+              <div class="pickup-card-address">{{ point.address }}</div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Selected / error -->
+          <div id="pickup-selected-display" class="notice-success" style="display:none;margin-top:1rem">
+            ✅ <strong>{{ t('pickup_point_selected') }}:</strong> <span id="pickup-selected-name"></span>
+          </div>
+          <div id="pickup-error-display" class="notice-error" style="display:none;margin-top:0.5rem">
+            ⚠️ {{ t('pickup_point_required_error') }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Order form -->
         <div class="card">
-          <h2 class="card-title">📋 {{ t('order_form_title') }}</h2>
+          <h2 class="card-title">📋 {{ t('customer_data_section') }}</h2>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.25rem">{{ t('customer_address_hint') }}</p>
+
           <form method="post" action="/bestellung/aufgeben" id="order-form">
             <input type="hidden" name="language" value="{{ lang }}">
             <input type="hidden" name="items_json" id="items-json-input" value="[]">
+            <input type="hidden" name="pickup_point_id" id="pickup-point-id-form" value="">
+            <input type="hidden" name="pickup_point_name" id="pickup-point-name-form" value="">
 
             <div class="grid-2">
               <div class="form-group">
@@ -82,15 +149,8 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">{{ t('field_country') }}</label>
-              <select name="customer_country" class="form-input">
-                <option value="Deutschland" selected>Deutschland</option>
-              </select>
-            </div>
-
-            <div class="form-group">
               <label class="form-label">{{ t('field_note') }}</label>
-              <textarea name="customer_note" class="form-input" placeholder="{{ t('field_note_placeholder') }}"></textarea>
+              <textarea name="customer_note" class="form-input" rows="2" placeholder="{{ t('field_note_placeholder') }}"></textarea>
             </div>
 
             <div class="form-group">
@@ -100,18 +160,17 @@
               </div>
             </div>
 
-            <div class="payment-notice mb-2">
-              💶 {{ t('payment_notice') }}
-            </div>
+            <div class="payment-notice mb-2">💶 {{ t('payment_notice') }}</div>
 
             <button type="submit" class="btn btn-primary btn-lg btn-full">
               ✅ {{ t('submit_order') }}
             </button>
           </form>
         </div>
+
       </div>
 
-      <!-- Right: Summary -->
+      <!-- Sidebar -->
       <div style="position:sticky;top:80px">
         <div class="card">
           <h3 class="card-title">📊 {{ t('cart_summary') }}</h3>
@@ -120,8 +179,8 @@
             <span class="cart-total-amount">0.00 €</span>
           </div>
           <div class="total-row">
-            <span>{{ t('cart_shipping') }}</span>
-            <span style="color:var(--success);font-weight:700">{{ t('cart_shipping_value') }}</span>
+            <span>{{ t('pickup_point_label') }}</span>
+            <span style="color:var(--success);font-weight:700">{{ t('cart_pickup_value') }}</span>
           </div>
           <div class="divider"></div>
           <div class="total-row grand">
@@ -132,20 +191,189 @@
             ℹ️ {{ t('cart_no_prepayment') }}
           </div>
         </div>
+
+        <div id="sidebar-pickup-display" class="card" style="margin-top:1rem;display:none">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.4rem">
+            📍 {{ t('pickup_point_label') }}
+          </div>
+          <div id="sidebar-pickup-name" style="font-weight:700;font-size:0.92rem;color:var(--primary)"></div>
+        </div>
       </div>
 
     </div>
   </div>
-
 </div>
 {% endblock %}
 
 {% block scripts %}
+{% if pickupPoints | length > 0 %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const PICKUP_POINTS = {{ pickupPoints | dump | safe }};
+let selectedPickupId = null;
+let _map = null;
+let _markers = {};
+
+// ── Init Leaflet map ──────────────────────────────────────────────────────────
+function initPickupMap() {
+  const el = document.getElementById('pickup-map');
+  if (!el || !PICKUP_POINTS.length) return;
+
+  // Default center: Germany
+  _map = L.map('pickup-map', { zoomControl: true }).setView([51.163375, 10.447683], 6);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(_map);
+
+  // Add markers
+  const bounds = [];
+  PICKUP_POINTS.forEach(point => {
+    const marker = L.marker([point.lat, point.lng]).addTo(_map);
+    marker.bindPopup(
+      `<strong>${point.name}</strong><br><span style="color:#666;font-size:0.85rem">${point.address}</span>`
+    );
+    marker.on('click', () => {
+      selectPickupPoint(point.id, point.name, point.lat, point.lng);
+    });
+    _markers[point.id] = marker;
+    bounds.push([point.lat, point.lng]);
+  });
+
+  // Fit all markers in view
+  if (bounds.length === 1) {
+    _map.setView(bounds[0], 13);
+  } else {
+    _map.fitBounds(bounds, { padding: [40, 40] });
+  }
+}
+
+// ── Auto-detect GPS on page load ──────────────────────────────────────────────
+function autoDetectGPS() {
+  if (!navigator.geolocation || !PICKUP_POINTS.length) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const nearest = calcNearest(pos.coords.latitude, pos.coords.longitude);
+      if (!nearest) return;
+      selectPickupPoint(nearest.id, nearest.name, nearest.lat, nearest.lng);
+      const notice = document.getElementById('gps-auto-notice');
+      if (notice) {
+        document.getElementById('gps-auto-name').textContent = nearest.name;
+        notice.style.display = 'flex';
+      }
+    },
+    () => { /* GPS denied – silent, button stays as fallback */ },
+    { timeout: 6000, maximumAge: 120000 }
+  );
+}
+
+// ── Manual GPS button ─────────────────────────────────────────────────────────
+function triggerGPS() {
+  if (!navigator.geolocation) {
+    alert('{{ t("pickup_point_gps_unavailable") }}');
+    return;
+  }
+  const btn = document.getElementById('gps-btn');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = '…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      const nearest = calcNearest(pos.coords.latitude, pos.coords.longitude);
+      if (nearest) selectPickupPoint(nearest.id, nearest.name, nearest.lat, nearest.lng);
+    },
+    () => {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+      alert('{{ t("pickup_point_gps_denied") }}');
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ── Select a pickup point ─────────────────────────────────────────────────────
+function selectPickupPoint(id, name, lat, lng) {
+  selectedPickupId = id;
+  id = parseInt(id);
+
+  document.getElementById('pickup-point-id-form').value = id;
+  document.getElementById('pickup-point-name-form').value = name;
+
+  // Highlight list card
+  document.querySelectorAll('.pickup-card').forEach(card =>
+    card.classList.toggle('selected', parseInt(card.dataset.id) === id)
+  );
+
+  // Show confirmation
+  document.getElementById('pickup-selected-name').textContent = name;
+  document.getElementById('pickup-selected-display').style.display = '';
+  document.getElementById('pickup-error-display').style.display = 'none';
+
+  // Sidebar
+  document.getElementById('sidebar-pickup-name').textContent = name;
+  document.getElementById('sidebar-pickup-display').style.display = '';
+
+  // Map: open popup, pan, reset other markers, highlight selected
+  if (_map) {
+    Object.entries(_markers).forEach(([mid, marker]) => {
+      const sel = parseInt(mid) === id;
+      // Use green icon for selected, default for others
+      marker.setIcon(sel
+        ? L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })
+        : new L.Icon.Default()
+      );
+    });
+    if (_markers[id]) {
+      _map.setView([lat, lng], Math.max(_map.getZoom(), 13), { animate: true });
+      _markers[id].openPopup();
+    }
+  }
+}
+
+// ── Haversine distance ────────────────────────────────────────────────────────
+function calcNearest(userLat, userLng) {
+  let nearest = null, minDist = Infinity;
+  PICKUP_POINTS.forEach(p => {
+    const R = 6371;
+    const dLat = (p.lat - userLat) * Math.PI / 180;
+    const dLng = (p.lng - userLng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 +
+      Math.cos(userLat * Math.PI/180) * Math.cos(p.lat * Math.PI/180) * Math.sin(dLng/2)**2;
+    const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    if (d < minDist) { minDist = d; nearest = p; }
+  });
+  return nearest;
+}
+
+// ── Startup ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initPickupMap();
+  autoDetectGPS();
+});
+</script>
+{% endif %}
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   renderCart('{{ lang }}');
-  const cartLayout = document.querySelector('.cart-layout');
-  if (window.innerWidth < 768 && cartLayout) cartLayout.style.gridTemplateColumns = '1fr';
+
+  const layout = document.querySelector('.cart-layout');
+  if (window.innerWidth < 768 && layout) layout.style.gridTemplateColumns = '1fr';
+
+  document.getElementById('order-form').addEventListener('submit', e => {
+    const hasPoints = {{ 'true' if pickupPoints | length > 0 else 'false' }};
+    if (hasPoints && !selectedPickupId) {
+      e.preventDefault();
+      const err = document.getElementById('pickup-error-display');
+      if (err) {
+        err.style.display = '';
+        err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
 });
 </script>
 {% endblock %}

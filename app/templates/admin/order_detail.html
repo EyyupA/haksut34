@@ -134,9 +134,16 @@
         <div>✉️ <a href="mailto:{{ order.customer_email }}">{{ order.customer_email }}</a></div>
         <div>📞 {{ order.customer_phone }}</div>
       </div>
+      {% if order.pickup_point_name %}
       <div class="divider"></div>
       <h3 style="font-weight:800;margin:0 0 0.75rem;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">
-        📍 {{ t('delivery_address') }}
+        📍 {{ t('pickup_point_label') }}
+      </h3>
+      <div style="font-size:0.95rem;font-weight:700;color:var(--primary)">{{ order.pickup_point_name }}</div>
+      {% endif %}
+      <div class="divider"></div>
+      <h3 style="font-weight:800;margin:0 0 0.75rem;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted)">
+        🏠 {{ t('customer_data_section') }}
       </h3>
       <div style="font-size:0.9rem;line-height:1.8">
         <div>{{ order.customer_address }}</div>

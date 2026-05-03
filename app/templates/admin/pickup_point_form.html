@@ -1,0 +1,246 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if point %}{{ t('admin_edit_pickup_point') }}{% else %}{{ t('admin_new_pickup_point') }}{% endif %}{% endblock %}
+{% block topbar_title %}{% if point %}{{ t('admin_edit_pickup_point') }}{% else %}{{ t('admin_new_pickup_point') }}{% endif %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:760px">
+  <a href="/admin/abholpunkte" style="color:var(--text-muted);font-size:0.88rem;text-decoration:none">← {{ t('admin_back_to_pickup_points') }}</a>
+
+  <div class="card" style="margin-top:1rem">
+    <h1 class="card-title">
+      {% if point %}{{ t('admin_edit_pickup_point') }}{% else %}{{ t('admin_new_pickup_point') }}{% endif %}
+    </h1>
+
+    {% if error %}
+    <div class="notice notice-error" style="margin-bottom:1rem">⚠️ {{ error }}</div>
+    {% endif %}
+
+    <form method="post" id="pickup-form">
+
+      <div class="form-group">
+        <label class="form-label">{{ t('admin_pickup_point_name') }} <span class="required">*</span></label>
+        <input type="text" name="name" id="field-name" class="form-input" required
+          value="{{ point.name if point else '' }}"
+          placeholder="z.B. Düsseldorf – Hauptbahnhof">
+      </div>
+
+      <!-- Address with search button -->
+      <div class="form-group">
+        <label class="form-label">{{ t('admin_pickup_point_address') }} <span class="required">*</span></label>
+        <div style="display:flex;gap:0.5rem">
+          <input type="text" name="address" id="field-address" class="form-input" required
+            value="{{ point.address if point else '' }}"
+            placeholder="z.B. Konrad-Adenauer-Platz 14, 40210 Düsseldorf"
+            style="flex:1">
+          <button type="button" id="geocode-btn" onclick="geocodeAddress()"
+            class="btn btn-outline btn-sm" style="white-space:nowrap;flex-shrink:0">
+            🔍 Auf Karte
+          </button>
+        </div>
+        <div id="geocode-status" style="font-size:0.8rem;margin-top:0.3rem;min-height:1.1em"></div>
+      </div>
+
+      <!-- Leaflet Map -->
+      <div class="form-group">
+        <label class="form-label" style="margin-bottom:0.5rem">
+          Standort auf der Karte
+          <span style="font-weight:400;color:var(--text-muted)">— Klicken oder Marker ziehen • Adresse wird automatisch aktualisiert</span>
+        </label>
+        <div id="admin-map" style="height:400px;border-radius:var(--radius-sm);border:2px solid var(--border);overflow:hidden;z-index:0;position:relative;cursor:crosshair"></div>
+      </div>
+
+      <!-- Lat / Lng (read-only display, still submitted) -->
+      <div class="grid-2" style="margin-bottom:0.75rem">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">{{ t('admin_pickup_point_lat') }}</label>
+          <input type="number" name="lat" id="field-lat" class="form-input" required step="0.000001"
+            value="{{ point.lat if point else '' }}" placeholder="wird von Karte übernommen"
+            style="background:var(--bg)">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">{{ t('admin_pickup_point_lng') }}</label>
+          <input type="number" name="lng" id="field-lng" class="form-input" required step="0.000001"
+            value="{{ point.lng if point else '' }}" placeholder="wird von Karte übernommen"
+            style="background:var(--bg)">
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1.25rem">
+        Koordinaten werden automatisch gesetzt, wenn Sie auf der Karte klicken oder die Adresse suchen.
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">{{ t('admin_category_sort_label') }}</label>
+          <input type="number" name="sort_order" class="form-input"
+            value="{{ point.sort_order if point else '0' }}" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('admin_active_label') }}</label>
+          <select name="is_active" class="form-input">
+            <option value="true" {% if not point or point.is_active %}selected{% endif %}>{{ t('admin_product_active') }}</option>
+            <option value="false" {% if point and not point.is_active %}selected{% endif %}>{{ t('admin_product_inactive') }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
+        <button type="submit" class="btn btn-primary">
+          {% if point %}{{ t('admin_save_changes_btn') }}{% else %}{{ t('admin_create_pickup_point_btn') }}{% endif %}
+        </button>
+        <a href="/admin/abholpunkte" class="btn btn-outline">{{ t('admin_cancel_btn_text') }}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  const latInput     = document.getElementById('field-lat');
+  const lngInput     = document.getElementById('field-lng');
+  const addrInput    = document.getElementById('field-address');
+  const geocodeBtn   = document.getElementById('geocode-btn');
+  const geocodeStatus = document.getElementById('geocode-status');
+
+  const initLat = parseFloat(latInput.value) || null;
+  const initLng = parseFloat(lngInput.value) || null;
+  const hasPoint = initLat !== null && initLng !== null;
+
+  // ── Init map ────────────────────────────────────────────────────────────────
+  const map = L.map('admin-map').setView(
+    hasPoint ? [initLat, initLng] : [51.163375, 10.447683],
+    hasPoint ? 14 : 6
+  );
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  setTimeout(() => map.invalidateSize(), 150);
+
+  let marker = null;
+  let reverseDebounce = null;
+
+  // ── Place/move marker ───────────────────────────────────────────────────────
+  function placeMarker(latlng, skipReverse) {
+    if (marker) {
+      marker.setLatLng(latlng);
+    } else {
+      marker = L.marker(latlng, { draggable: true }).addTo(map);
+      marker.on('dragend', e => {
+        const ll = e.target.getLatLng();
+        updateCoordInputs(ll.lat, ll.lng);
+        reverseGeocode(ll.lat, ll.lng);
+      });
+    }
+    updateCoordInputs(latlng.lat, latlng.lng);
+    if (!skipReverse) reverseGeocode(latlng.lat, latlng.lng);
+  }
+
+  // ── Update lat/lng input fields ─────────────────────────────────────────────
+  function updateCoordInputs(lat, lng) {
+    latInput.value = lat.toFixed(6);
+    lngInput.value = lng.toFixed(6);
+  }
+
+  // ── Click on map → place marker + reverse geocode ───────────────────────────
+  map.on('click', e => {
+    placeMarker(e.latlng);
+    map.setView(e.latlng, Math.max(map.getZoom(), 14), { animate: true });
+  });
+
+  // ── Existing point on load ──────────────────────────────────────────────────
+  if (hasPoint) placeMarker(L.latLng(initLat, initLng), true); // skip reverse on load
+
+  // ── Forward geocoding: address → map ────────────────────────────────────────
+  window.geocodeAddress = function () {
+    const query = addrInput.value.trim();
+    if (!query) return;
+
+    setStatus('⏳ Suche…', '#666');
+    geocodeBtn.disabled = true;
+
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`, {
+      headers: { 'Accept-Language': 'de' }
+    })
+      .then(r => r.json())
+      .then(results => {
+        geocodeBtn.disabled = false;
+        if (!results.length) {
+          setStatus('❌ Adresse nicht gefunden. Bitte präziser eingeben.', 'var(--danger)');
+          return;
+        }
+        const r = results[0];
+        const lat = parseFloat(r.lat);
+        const lng = parseFloat(r.lon);
+        placeMarker(L.latLng(lat, lng), true); // skip reverse (we already have the address)
+        map.setView([lat, lng], 16, { animate: true });
+        setStatus('✅ Standort auf Karte gesetzt.', 'var(--success)');
+        setTimeout(() => setStatus('', ''), 3000);
+      })
+      .catch(() => {
+        geocodeBtn.disabled = false;
+        setStatus('❌ Fehler beim Geocoding. Bitte Internetverbindung prüfen.', 'var(--danger)');
+      });
+  };
+
+  // Enter key in address field triggers geocoding
+  addrInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); geocodeAddress(); }
+  });
+
+  // ── Reverse geocoding: map → address ────────────────────────────────────────
+  function reverseGeocode(lat, lng) {
+    clearTimeout(reverseDebounce);
+    reverseDebounce = setTimeout(() => {
+      setStatus('⏳ Adresse wird ermittelt…', '#666');
+
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+        headers: { 'Accept-Language': 'de' }
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.display_name) {
+            // Build a compact address: road + house number + postcode + city
+            const a = data.address || {};
+            const parts = [
+              [a.road, a.house_number].filter(Boolean).join(' '),
+              [a.postcode, a.city || a.town || a.village || a.municipality].filter(Boolean).join(' '),
+              a.country,
+            ].filter(Boolean);
+            addrInput.value = parts.join(', ');
+            setStatus('✅ Adresse aktualisiert.', 'var(--success)');
+            setTimeout(() => setStatus('', ''), 3000);
+          }
+        })
+        .catch(() => setStatus('', ''));
+    }, 400); // debounce – Nominatim: max 1 req/s
+  }
+
+  function setStatus(msg, color) {
+    geocodeStatus.textContent = msg;
+    geocodeStatus.style.color = color;
+  }
+
+  // ── Manual coord input → move marker ────────────────────────────────────────
+  function syncFromInputs() {
+    const lat = parseFloat(latInput.value);
+    const lng = parseFloat(lngInput.value);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      placeMarker(L.latLng(lat, lng));
+      map.setView([lat, lng], Math.max(map.getZoom(), 13), { animate: true });
+    }
+  }
+  latInput.addEventListener('change', syncFromInputs);
+  lngInput.addEventListener('change', syncFromInputs);
+})();
+</script>
+{% endblock %}

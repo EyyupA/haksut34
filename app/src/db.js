@@ -76,7 +76,22 @@ function initDb() {
       sort_order INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS pickup_points (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      address TEXT NOT NULL,
+      lat REAL NOT NULL,
+      lng REAL NOT NULL,
+      is_active INTEGER DEFAULT 1,
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
+
+  // Migrations: new columns added to existing tables
+  try { db.exec(`ALTER TABLE orders ADD COLUMN pickup_point_id INTEGER`) } catch {}
+  try { db.exec(`ALTER TABLE orders ADD COLUMN pickup_point_name TEXT`) } catch {}
 }
 
 initDb(); // Tabellen anlegen bevor queries prepared werden
@@ -142,12 +157,28 @@ export const queries = {
     "SELECT COUNT(*) as c FROM products WHERE category = (SELECT slug FROM categories WHERE id = ?)"
   ),
 
+  // Pickup points
+  allActivePickupPoints: db.prepare("SELECT * FROM pickup_points WHERE is_active = 1 ORDER BY sort_order, name"),
+  allPickupPoints: db.prepare("SELECT * FROM pickup_points ORDER BY sort_order, name"),
+  pickupPointById: db.prepare("SELECT * FROM pickup_points WHERE id = ?"),
+  insertPickupPoint: db.prepare(`
+    INSERT INTO pickup_points (name,address,lat,lng,is_active,sort_order)
+    VALUES (@name,@address,@lat,@lng,@is_active,@sort_order)
+  `),
+  updatePickupPoint: db.prepare(`
+    UPDATE pickup_points SET name=@name,address=@address,lat=@lat,lng=@lng,is_active=@is_active,sort_order=@sort_order
+    WHERE id=@id
+  `),
+  deletePickupPoint: db.prepare("DELETE FROM pickup_points WHERE id = ?"),
+
   // Orders
   insertOrder: db.prepare(`
     INSERT INTO orders (order_number,edit_token,customer_name,customer_email,customer_phone,
-      customer_address,customer_city,customer_zip,customer_country,customer_note,language)
+      customer_address,customer_city,customer_zip,customer_country,customer_note,language,
+      pickup_point_id,pickup_point_name)
     VALUES (@order_number,@edit_token,@customer_name,@customer_email,@customer_phone,
-      @customer_address,@customer_city,@customer_zip,@customer_country,@customer_note,@language)
+      @customer_address,@customer_city,@customer_zip,@customer_country,@customer_note,@language,
+      @pickup_point_id,@pickup_point_name)
   `),
   insertOrderItem: db.prepare(`
     INSERT INTO order_items (order_id,product_id,product_name,product_price,quantity,subtotal)

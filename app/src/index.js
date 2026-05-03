@@ -29,6 +29,8 @@ app.addHook('onReady', async () => {
   // noop – just ensures njk is initialised before first request
 })
 
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || ''
+
 // render helper exposed via fastify instance so routes can call fastify.render(reply, ...)
 app.decorate('render', (reply, template, request, extra = {}) => {
   const lang = request.lang || 'tr'
@@ -37,6 +39,7 @@ app.decorate('render', (reply, template, request, extra = {}) => {
     t: makeT(lang),
     path: new URL(request.url, 'http://localhost').pathname,
     currentYear: new Date().getFullYear(),
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     ...extra,
   })
   return reply.type('text/html').send(html)

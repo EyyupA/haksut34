@@ -69,12 +69,18 @@
       </tfoot>
     </table>
 
-    <div class="section-title">📍 Lieferadresse</div>
+    {% if order.pickup_point_name %}
+    <div class="section-title">📍 Abholpunkt</div>
+    <div class="address-box" style="background:#E8F5E9;border-left:4px solid #388E3C">
+      <strong>{{ order.pickup_point_name }}</strong>
+    </div>
+    {% endif %}
+
+    <div class="section-title">👤 Ihre Kontaktdaten</div>
     <div class="address-box">
       <strong>{{ order.customer_name }}</strong><br>
       {{ order.customer_address }}<br>
       {{ order.customer_zip }} {{ order.customer_city }}<br>
-      {{ order.customer_country }}<br>
       {% if order.customer_phone %}📞 {{ order.customer_phone }}{% endif %}
     </div>
 
@@ -84,7 +90,7 @@
     {% endif %}
 
     <div class="notice">
-      💶 <strong>Zahlungshinweis:</strong> Die Zahlung erfolgt bei Lieferung oder Abholung. Keine Vorauszahlung erforderlich.
+      💶 <strong>Zahlungshinweis:</strong> Die Zahlung erfolgt bei Abholung am gewählten Standort. Keine Vorauszahlung erforderlich.
     </div>
 
     <div class="notice" style="background:#E3F2FD;border-color:#1565C0;color:#0d47a1">
@@ -101,7 +107,7 @@
       <a href="https://www.instagram.com/haksut34">📸 @haksut34</a> &nbsp;·&nbsp;
       <a href="mailto:info@haksut34.de">info@haksut34.de</a>
     </p>
-    <p>Haksüt34 · Frische Büffelprodukte · Nur Lieferung innerhalb Deutschlands</p>
+    <p>Haksüt34 · Frische Büffelprodukte · Abholung an festen Standorten in Deutschland</p>
   </div>
 </div>
 </body>
