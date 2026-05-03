@@ -127,10 +127,6 @@ export default async function adminRoutes(fastify) {
     fastify.post('/bestellungen/:id/nichtbestaetigt', orderAction((id) =>
       queries.updateOrderLocked.run({ id, is_locked: 0, status: 'pending' })))
 
-    // Admin kann manuell entsperren (z.B. für Kundenkorrektur)
-    fastify.post('/bestellungen/:id/entsperren', orderAction((id) =>
-      queries.updateOrderLocked.run({ id, is_locked: 0, status: 'confirmed' })))
-
     fastify.post('/bestellungen/:id/bezahlt', orderAction((id) =>
       queries.updateOrderPaid.run(id)))
 

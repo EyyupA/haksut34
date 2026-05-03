@@ -31,11 +31,6 @@
     <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbestaetigt">
       <button class="btn btn-outline btn-sm">↩️ {{ t('admin_unconfirm_btn') }}</button>
     </form>
-    {% if order.is_locked %}
-    <form method="post" action="/admin/bestellungen/{{ order.id }}/entsperren">
-      <button class="btn btn-outline btn-sm" title="Erlaubt dem Kunden die Bestellung zu ändern">🔓 {{ t('admin_unlock_btn') }}</button>
-    </form>
-    {% endif %}
     {% endif %}
 
     {% if order.status != 'cancelled' %}
