@@ -250,5 +250,6 @@
   "admin_reports_by_pickup": "Teslim Noktasına Göre Siparişler",
   "admin_reports_total_orders": "Toplam Siparişler",
   "admin_reports_total_revenue": "Toplam Gelir",
-  "filter_pickup_point": "Teslim Noktası"
+  "filter_pickup_point": "Teslim Noktası",
+  "admin_unlock_btn": "Kilidi Aç"
 }

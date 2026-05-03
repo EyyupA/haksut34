@@ -122,6 +122,9 @@ export default async function adminRoutes(fastify) {
     fastify.post('/bestellungen/:id/sperren', orderAction((id) =>
       queries.updateOrderLocked.run({ id, is_locked: 1, status: 'locked' })))
 
+    fastify.post('/bestellungen/:id/entsperren', orderAction((id) =>
+      queries.updateOrderLocked.run({ id, is_locked: 0, status: 'confirmed' })))
+
     fastify.post('/bestellungen/:id/bezahlt', orderAction((id) =>
       queries.updateOrderPaid.run(id)))
 

@@ -13,7 +13,6 @@
       <span class="badge badge-{{ order.status }}">{{ t('status_' ~ order.status) }}</span>
       {% if order.is_paid %}<span class="badge badge-delivered">💶 {{ t('filter_paid_yes') }}</span>
       {% else %}<span class="badge badge-pending">💶 {{ t('filter_unpaid') }}</span>{% endif %}
-      {% if order.is_locked %}<span class="badge badge-locked">🔒 {{ t('status_locked') }}</span>{% endif %}
     </div>
     <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.3rem">
       {{ order.created_at | datetimeDE }}
@@ -33,7 +32,13 @@
     </form>
     {% endif %}
 
-    {% if order.status not in ('cancelled', 'delivered') %}
+    {% if order.status == 'locked' %}
+    <form method="post" action="/admin/bestellungen/{{ order.id }}/entsperren">
+      <button class="btn btn-outline btn-sm">🔓 {{ t('admin_unlock_btn') }}</button>
+    </form>
+    {% endif %}
+
+    {% if order.status not in ('cancelled', 'delivered', 'locked') %}
     <form method="post" action="/admin/bestellungen/{{ order.id }}/geliefert">
       <button class="btn btn-secondary btn-sm">📦 {{ t('admin_mark_delivered_btn') }}</button>
     </form>

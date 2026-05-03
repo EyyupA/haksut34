@@ -250,5 +250,6 @@
   "admin_reports_by_pickup": "Bestellungen nach Abholpunkt",
   "admin_reports_total_orders": "Bestellungen gesamt",
   "admin_reports_total_revenue": "Gesamtumsatz",
-  "filter_pickup_point": "Abholpunkt"
+  "filter_pickup_point": "Abholpunkt",
+  "admin_unlock_btn": "إلغاء القفل"
 }

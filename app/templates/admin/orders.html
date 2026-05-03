@@ -65,9 +65,15 @@
 
 {# ── Orders Table ──────────────────────────────────────────────── #}
 <div class="card" style="padding:0;overflow:hidden">
-  <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;display:flex;align-items:center;justify-content:space-between">
+  <div style="padding:1rem 1.5rem;border-bottom:2px solid var(--border);font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
     <span>{{ orders | length }} {{ t('admin_orders_count_many') if orders | length != 1 else t('admin_orders_count_one') }}</span>
-    <span style="font-size:0.78rem;color:var(--text-muted);font-weight:400">Klick auf Spaltenüberschrift zum Sortieren</span>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <span style="font-size:0.78rem;color:var(--text-muted);font-weight:400">Klick auf Spalte zum Sortieren</span>
+      <button onclick="location.reload()" class="btn btn-outline btn-sm" title="Bestellungen aktualisieren">
+        🔄 Aktualisieren
+      </button>
+      <span id="last-refresh" style="font-size:0.75rem;color:var(--text-muted);font-weight:400"></span>
+    </div>
   </div>
   <div style="overflow-x:auto">
     <table class="admin-table" id="orders-table">
@@ -153,4 +159,11 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('last-refresh').textContent =
+  'Stand: ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+</script>
 {% endblock %}
