@@ -119,29 +119,23 @@ export default async function adminRoutes(fastify) {
       return reply.redirect(`/admin/bestellungen/${id}`)
     }
 
-    fastify.post('/bestellungen/:id/sperren', orderAction((id) =>
-      queries.updateOrderLocked.run({ id, is_locked: 1, status: 'locked' })))
+    // Bestätigen → automatisch sperren (Kunde kann nicht mehr ändern)
+    fastify.post('/bestellungen/:id/bestaetigt', orderAction((id) =>
+      queries.updateOrderLocked.run({ id, is_locked: 1, status: 'confirmed' })))
 
+    // Bestätigung zurücknehmen → entsperren (Kunde kann wieder ändern)
+    fastify.post('/bestellungen/:id/nichtbestaetigt', orderAction((id) =>
+      queries.updateOrderLocked.run({ id, is_locked: 0, status: 'pending' })))
+
+    // Admin kann manuell entsperren (z.B. für Kundenkorrektur)
     fastify.post('/bestellungen/:id/entsperren', orderAction((id) =>
       queries.updateOrderLocked.run({ id, is_locked: 0, status: 'confirmed' })))
 
     fastify.post('/bestellungen/:id/bezahlt', orderAction((id) =>
       queries.updateOrderPaid.run(id)))
 
-    fastify.post('/bestellungen/:id/bestaetigt', orderAction((id) =>
-      queries.updateOrderStatus.run({ id, status: 'confirmed' })))
-
-    fastify.post('/bestellungen/:id/geliefert', orderAction((id) =>
-      queries.updateOrderLocked.run({ id, is_locked: 1, status: 'delivered' })))
-
     fastify.post('/bestellungen/:id/stornieren', orderAction((id) =>
       queries.updateOrderStatus.run({ id, status: 'cancelled' })))
-
-    fastify.post('/bestellungen/:id/nichtgeliefert', orderAction((id) =>
-      queries.updateOrderLocked.run({ id, is_locked: 0, status: 'confirmed' })))
-
-    fastify.post('/bestellungen/:id/nichtbestaetigt', orderAction((id) =>
-      queries.updateOrderStatus.run({ id, status: 'pending' })))
 
     fastify.post('/bestellungen/:id/nichtbezahlt', orderAction((id) =>
       queries.updateOrderUnpaid.run(id)))

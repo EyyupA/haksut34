@@ -130,19 +130,15 @@
           <td>
             <div class="action-btns">
               <a href="/admin/bestellungen/{{ order.id }}" class="action-btn" title="{{ t('col_actions') }}">👁</a>
-              {% if order.status not in ('cancelled', 'delivered') %}
+              {% if order.status == 'cancelled' %}{% else %}
               <form method="post" action="/admin/bestellungen/{{ order.id }}/bezahlt" style="display:inline">
                 <button class="action-btn" title="{{ t('admin_mark_paid_btn') }}">💶</button>
               </form>
+              {% if order.status == 'pending' %}
               <form method="post" action="/admin/bestellungen/{{ order.id }}/bestaetigt" style="display:inline">
                 <button class="action-btn" title="{{ t('admin_confirm_btn') }}">✅</button>
               </form>
-              <form method="post" action="/admin/bestellungen/{{ order.id }}/sperren" style="display:inline">
-                <button class="action-btn" title="{{ t('admin_lock_btn') }}">🔒</button>
-              </form>
-              <form method="post" action="/admin/bestellungen/{{ order.id }}/geliefert" style="display:inline">
-                <button class="action-btn" title="{{ t('admin_mark_delivered_btn') }}">📦</button>
-              </form>
+              {% endif %}
               <form method="post" action="/admin/bestellungen/{{ order.id }}/stornieren" style="display:inline">
                 <button class="action-btn" title="{{ t('admin_cancel_btn') }}"
                   data-confirm="{{ t('admin_cancel_order_modal_text') }}">❌</button>

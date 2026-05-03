@@ -20,40 +20,22 @@
   </div>
 
   <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-    {# ── Admin-Aktionen (unabhängig vom Sperrstatus) ── #}
+    {# ── Admin-Aktionen ── #}
     {% if order.status == 'pending' %}
     <form method="post" action="/admin/bestellungen/{{ order.id }}/bestaetigt">
       <button class="btn btn-success btn-sm">✅ {{ t('admin_confirm_btn') }}</button>
     </form>
     {% endif %}
 
-    {% if order.status in ('confirmed', 'locked') %}
+    {% if order.status == 'confirmed' %}
     <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtbestaetigt">
       <button class="btn btn-outline btn-sm">↩️ {{ t('admin_unconfirm_btn') }}</button>
     </form>
-    {% endif %}
-
-    {% if order.status not in ('cancelled', 'delivered') %}
-    <form method="post" action="/admin/bestellungen/{{ order.id }}/geliefert">
-      <button class="btn btn-secondary btn-sm">📦 {{ t('admin_mark_delivered_btn') }}</button>
-    </form>
-    {% endif %}
-
-    {% if order.status == 'locked' %}
+    {% if order.is_locked %}
     <form method="post" action="/admin/bestellungen/{{ order.id }}/entsperren">
-      <button class="btn btn-outline btn-sm">🔓 {{ t('admin_unlock_btn') }}</button>
-    </form>
-    {% elif order.status not in ('cancelled', 'delivered') %}
-    <form method="post" action="/admin/bestellungen/{{ order.id }}/sperren">
-      <button class="btn btn-outline btn-sm">🔒 {{ t('admin_lock_btn') }}</button>
+      <button class="btn btn-outline btn-sm" title="Erlaubt dem Kunden die Bestellung zu ändern">🔓 {{ t('admin_unlock_btn') }}</button>
     </form>
     {% endif %}
-
-    {% if order.status == 'delivered' %}
-    <form method="post" action="/admin/bestellungen/{{ order.id }}/nichtgeliefert"
-      onsubmit="return confirm('{{ t('admin_undeliver_confirm') }}')">
-      <button class="btn btn-outline btn-sm">↩️ {{ t('admin_undeliver') }}</button>
-    </form>
     {% endif %}
 
     {% if order.status != 'cancelled' %}
